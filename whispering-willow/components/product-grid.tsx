@@ -1,9 +1,10 @@
-import Image from 'next/image'
-import { products, INSTAGRAM_URL } from '@/lib/products'
+import { INSTAGRAM_URL } from '@/lib/products'
+import { getProducts } from '@/lib/products-server'
 
-const categories = ['Rings', 'Bracelets', 'Earrings'] as const
+export async function ProductGrid() {
+  const products = await getProducts()
+  const categories = Array.from(new Set(products.map((product) => product.category)))
 
-export function ProductGrid() {
   return (
     <section id="shop" className="bg-secondary/30">
       <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
@@ -35,16 +36,14 @@ export function ProductGrid() {
                 <div className="grid justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {categoryProducts.map((p) => (
                     <article
-                      key={p.name}
+                      key={p.id ?? p.name}
                       className="group flex w-full max-w-[280px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card text-left shadow-sm"
                     >
                       <div className="relative aspect-square w-full overflow-hidden">
-                        <Image
+                        <img
                           src={p.image || '/placeholder.svg'}
                           alt={p.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         />
                       </div>
                       <div className="flex flex-1 flex-col p-5">

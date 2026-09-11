@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '@/lib/products'
+import { AdminAccess } from '@/components/admin-access'
 
 export function SiteFooter() {
   return (
@@ -23,6 +24,7 @@ export function SiteFooter() {
           <a href="#shop" className="hover:text-foreground">
             Shop
           </a>
+          <AdminAccess />
         </div>
         <p className="text-xs tracking-wide text-muted-foreground/70">
           @{INSTAGRAM_HANDLE} · © {new Date().getFullYear()} Whispering Willow. All rights reserved.
