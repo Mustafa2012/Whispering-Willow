@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
+  const adminUsername = process.env.ADMIN_PANEL_USERNAME
+  const adminPassword = process.env.ADMIN_PANEL_PASSWORD
+
+  if (!adminUsername || !adminPassword) {
+    return NextResponse.json(
+      { error: 'Admin login is not configured on this deployment.' },
+      { status: 503 },
+    )
+  }
+
   try {
     const { username, password } = (await request.json()) as {
       username?: string
@@ -8,8 +18,8 @@ export async function POST(request: Request) {
     }
 
     if (
-      username !== process.env.ADMIN_PANEL_USERNAME ||
-      password !== process.env.ADMIN_PANEL_PASSWORD
+      username !== adminUsername ||
+      password !== adminPassword
     ) {
       return NextResponse.json({ error: 'Incorrect username or password.' }, { status: 401 })
     }

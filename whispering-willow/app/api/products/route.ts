@@ -11,8 +11,9 @@ import type { Product } from '@/lib/products'
 export async function GET() {
   try {
     return NextResponse.json(await getProducts())
-  } catch {
-    return NextResponse.json({ error: 'Unable to load products.' }, { status: 500 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to load products.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

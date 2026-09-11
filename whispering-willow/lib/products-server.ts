@@ -2,6 +2,8 @@ import { unstable_noStore as noStore } from 'next/cache'
 import { products as defaultProducts, type Product } from '@/lib/products'
 
 const supabaseUrl = process.env.SUPABASE_URL
+  ?.replace(/\/+$/, '')
+  .replace(/\/rest\/v1$/, '')
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export function isProductDatabaseConfigured() {
@@ -25,7 +27,7 @@ export async function getProducts(): Promise<Product[]> {
   })
 
   if (!response.ok) {
-    throw new Error('Unable to load products from Supabase.')
+    throw new Error(`Supabase products request failed with status ${response.status}.`)
   }
 
   const storedProducts = (await response.json()) as Product[]
