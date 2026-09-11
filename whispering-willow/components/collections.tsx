@@ -12,7 +12,7 @@ export function Collections() {
       </div>
 
       <div className="mx-auto max-w-3xl">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:justify-items-center">
+        <div className="grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-3">
           {collections.map((c) => (
             <a
               key={c.name}
