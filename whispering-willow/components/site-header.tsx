@@ -2,23 +2,24 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { Menu, ShoppingBag, X } from 'lucide-react'
+import { useCart } from '@/components/cart-provider'
+import { CartDrawer } from '@/components/cart-drawer'
 
 const links = [
-  { label: 'Collections', href: '#collections' },
-  { label: 'Why Willow', href: '#why' },
-  { label: 'Quality', href: '#quality' },
   { label: 'Shop', href: '#shop' },
-  { label: 'Story', href: '#story' },
+  { label: 'My orders', href: '/orders' },
 ]
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
+  const { itemCount } = useCart()
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <a href="#top" className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2">
           <Image
             src="/whispering-willow-logo.png"
             alt="Whispering Willow"
@@ -43,12 +44,10 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <a
-          href="#contact"
-          className="hidden rounded-full border border-gold/60 px-5 py-2 text-sm tracking-wide text-foreground transition-colors hover:bg-gold hover:text-background md:inline-block"
-        >
-          Order Now
-        </a>
+        <button type="button" onClick={() => setCartOpen(true)} className="hidden items-center gap-2 rounded-full border border-gold/60 px-5 py-2 text-sm tracking-wide text-foreground transition-colors hover:bg-gold hover:text-background md:flex">
+          <ShoppingBag className="h-4 w-4" />
+          Cart ({itemCount})
+        </button>
 
         <button
           type="button"
@@ -76,17 +75,21 @@ export function SiteHeader() {
               </li>
             ))}
             <li>
-              <a
-                href="#contact"
-                onClick={() => setOpen(false)}
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false)
+                  setCartOpen(true)
+                }}
                 className="mt-1 inline-block rounded-full border border-gold/60 px-5 py-2 text-sm tracking-wide text-foreground"
               >
-                Order Now
-              </a>
+                Cart ({itemCount})
+              </button>
             </li>
           </ul>
         </nav>
       )}
+      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </header>
   )
 }

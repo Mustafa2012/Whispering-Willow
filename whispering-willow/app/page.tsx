@@ -1,25 +1,16 @@
 import { SiteHeader } from '@/components/site-header'
-import { Hero } from '@/components/hero'
-import { Collections } from '@/components/collections'
-import { WhyWillow } from '@/components/why-willow'
-import { Quality } from '@/components/quality'
 import { ProductGrid } from '@/components/product-grid'
-import { Story } from '@/components/story'
-import { Contact } from '@/components/contact'
 import { SiteFooter } from '@/components/site-footer'
+import { getProducts } from '@/lib/products-server'
 
-export default function Page() {
+export default async function Page() {
+  const products = await getProducts()
+
   return (
     <>
       <SiteHeader />
       <main>
-        <Hero />
-        <Collections />
-        <WhyWillow />
-        <Quality />
-        <ProductGrid />
-        <Story />
-        <Contact />
+        <ProductGrid products={products} />
       </main>
       <SiteFooter />
     </>

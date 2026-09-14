@@ -12,12 +12,26 @@ const emptyForm = {
 }
 
 type ProductForm = typeof emptyForm
+type AdminOrder = {
+  id: number
+  order_number?: string
+  customer_name: string
+  email: string
+  phone: string
+  address: string
+  payment_method: string
+  proof_url?: string
+  total: number
+  status: string
+  created_at?: string
+}
 const adminSessionKey = 'whispering-willow-admin-authenticated'
 const adminPasswordSessionKey = 'whispering-willow-admin-password'
 
 export function AdminPage() {
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
+  const [orders, setOrders] = useState<AdminOrder[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [form, setForm] = useState<ProductForm>(emptyForm)
   const [password, setPassword] = useState('')
@@ -43,12 +57,12 @@ export function AdminPage() {
       return
     }
 
-    fetch('/api/products')
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error('Unable to load products.')
-        }
-        return response.json() as Promise<Product[]>
+    Promise.all([fetch('/api/products'), fetch('/api/admin/orders', { headers: { 'x-admin-password': password } })])
+      .then(async ([productsResponse, ordersResponse]) => {
+        if (!productsResponse.ok) throw new Error('Unable to load products.')
+        const loadedOrders = ordersResponse.ok ? await ordersResponse.json() as AdminOrder[] : []
+        setOrders(loadedOrders)
+        return productsResponse.json() as Promise<Product[]>
       })
       .then(setProducts)
       .catch(() => setMessage('Unable to load products. Check your database configuration.'))
@@ -106,7 +120,7 @@ export function AdminPage() {
     setForm({
       name: product.name,
       category: product.category,
-      price: product.price,
+      price: String(product.price),
       description: product.description,
       image: product.image,
     })
@@ -128,7 +142,7 @@ export function AdminPage() {
       ...form,
       name: form.name.trim(),
       category: form.category.trim(),
-      price: form.price.trim() || 'Custom price',
+      price: Number(form.price) || 0,
       description: form.description.trim(),
       image: form.image.trim() || '/placeholder.svg',
     }
@@ -195,6 +209,16 @@ export function AdminPage() {
       startNewProduct()
     }
     setMessage('Product removed.')
+  }
+
+  const updateOrder = async (order: AdminOrder, status: string) => {
+    const response = await fetch('/api/admin/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+      body: JSON.stringify({ id: order.id, status }),
+    })
+    if (response.ok) setOrders((current) => current.map((item) => item.id === order.id ? { ...item, status } : item))
+    else setMessage('Unable to update order.')
   }
 
   if (!isAuthorized) {
@@ -270,6 +294,11 @@ export function AdminPage() {
                   </div>
                 </article>
               ))}
+            </div>
+
+            <div className="mt-12 border-t border-border/70 pt-8">
+              <div className="mb-4 flex items-baseline justify-between"><h2 className="font-serif text-3xl text-foreground">Orders</h2><span className="text-sm text-muted-foreground">{orders.filter((order) => order.status === 'pending').length} pending</span></div>
+              {orders.length === 0 ? <p className="text-sm text-muted-foreground">No orders yet. Orders will appear here after checkout.</p> : <div className="space-y-3">{orders.map((order) => <article key={order.id} className="rounded-2xl border border-border/70 bg-background p-4"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.16em] text-primary">Order #{order.order_number || order.id}</p><h3 className="mt-1 font-serif text-xl">{order.customer_name}</h3><p className="text-sm text-muted-foreground">{order.email} · {order.phone}</p><p className="mt-2 text-sm">{order.address}</p>{order.proof_url ? <a href={order.proof_url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-primary">View transfer proof</a> : null}</div><div className="flex items-end gap-3"><div className="text-right"><p className="font-serif text-lg">PKR {Number(order.total).toLocaleString('en-PK')}</p><p className="text-xs uppercase text-muted-foreground">{order.payment_method}</p></div><select value={order.status} onChange={(event) => void updateOrder(order, event.target.value)} className="rounded-xl border border-border bg-card px-3 py-2 text-sm"><option>pending</option><option>confirmed</option><option>processing</option><option>shipped</option><option>completed</option><option>cancelled</option></select></div></div></article>)}</div>}
             </div>
           </section>
 

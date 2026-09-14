@@ -1,0 +1,4 @@
+export default async function CheckoutSuccessPage({ searchParams }: { searchParams: Promise<{ order?: string }> }) {
+  const { order } = await searchParams
+  return <main className="flex min-h-screen items-center justify-center bg-secondary/30 px-6"><div className="max-w-lg rounded-2xl border border-border/70 bg-background p-8 text-center"><p className="text-xs uppercase tracking-[0.2em] text-primary">Order received</p><h1 className="mt-3 font-serif text-4xl">Thank you for your order</h1><p className="mt-4 text-muted-foreground">Your order number is <strong className="text-foreground">{order || 'pending'}</strong>. We will contact you to confirm delivery.</p><div className="mt-7 flex flex-wrap justify-center gap-3"><a href="/orders" className="rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground">View my orders</a><a href="/" className="rounded-full border border-border px-5 py-3 text-sm text-foreground">Return to shop</a></div></div></main>
+}

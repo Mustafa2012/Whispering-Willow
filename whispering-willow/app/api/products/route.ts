@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     await createProduct({
       name,
       category,
-      price: product.price?.trim() || 'Custom price',
+      price: typeof product.price === 'number' && Number.isFinite(product.price) ? product.price : 0,
       description,
       image: product.image?.trim() || '/placeholder.svg',
     })
@@ -102,7 +102,7 @@ export async function PUT(request: Request) {
     await updateProduct(id, {
       name,
       category,
-      price: product.price?.trim() || 'Custom price',
+      price: typeof product.price === 'number' && Number.isFinite(product.price) ? product.price : 0,
       description,
       image: product.image?.trim() || '/placeholder.svg',
     })
