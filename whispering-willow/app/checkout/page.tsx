@@ -65,7 +65,7 @@ export default function CheckoutPage() {
   }
 
   if (!customerEmail) {
-    return <main className="flex min-h-screen items-center justify-center bg-secondary/30 px-6"><section className="max-w-md rounded-2xl border border-border/70 bg-background p-8 text-center"><h1 className="font-serif text-4xl">Sign in to checkout</h1><p className="mt-3 text-muted-foreground">Use your email to receive a one-time code before placing your order.</p><a href="/login" className="mt-6 inline-block rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground">Sign in with email</a></section></main>
+    return <main className="flex min-h-screen items-center justify-center bg-secondary/30 px-6"><section className="max-w-md rounded-2xl border border-border/70 bg-background p-8 text-center"><h1 className="font-serif text-4xl">Sign in to checkout</h1><p className="mt-3 text-muted-foreground">Use Google to continue before placing your order.</p><a href="/login" className="mt-6 inline-block rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground">Continue with Google</a></section></main>
   }
 
   return <main className="min-h-screen bg-secondary/30 px-6 py-12 md:py-20">

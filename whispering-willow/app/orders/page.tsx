@@ -62,7 +62,7 @@ export default function OrdersPage() {
         <div className="mt-5 max-w-xl">
           <p className="text-xs uppercase tracking-[0.2em] text-primary">Order tracking</p>
           <h1 className="mt-2 font-serif text-5xl text-foreground">Your orders</h1>
-          <p className="mt-4 text-muted-foreground">Sign in with your email to view your order history and statuses.</p>
+          <p className="mt-4 text-muted-foreground">Continue with Google to view your order history and statuses.</p>
         </div>
 
         {isCheckingAuth ? <p className="mt-8 text-sm text-muted-foreground">Checking your account...</p> : !isAuthenticated ? <div className="mt-8 rounded-2xl border border-border/70 bg-background p-6"><p className="text-sm text-muted-foreground">Sign in to securely view orders linked to your account.</p><a href="/login" className="mt-4 inline-block rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground">Sign in with email</a></div> : <form onSubmit={findOrders} className="mt-8 flex flex-col gap-3 rounded-2xl border border-border/70 bg-background p-4 sm:flex-row"><label className="flex-1"><span className="sr-only">Account email</span><input type="email" readOnly value={email} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none" /></label><button type="submit" disabled={isLoading} className="rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground disabled:opacity-60">{isLoading ? 'Loading...' : 'Show my orders'}</button></form>}

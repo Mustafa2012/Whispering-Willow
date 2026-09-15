@@ -10,7 +10,25 @@ export function isCustomerAuthConfigured() {
 }
 
 export async function getCustomerSession() {
-  const token = (await cookies()).get(customerSessionCookie)?.value
+  const cookieStore = await cookies()
+  const customToken = cookieStore.get(customerSessionCookie)?.value
+  const projectRef = supabaseUrl ? new URL(supabaseUrl).hostname.split('.')[0] : null
+  const supabaseAuthToken = projectRef ? cookieStore.get(`sb-${projectRef}-auth-token`)?.value : null
+
+  let token = customToken || null
+  if (!token && supabaseAuthToken) {
+    try {
+      const parsed = JSON.parse(supabaseAuthToken)
+      if (Array.isArray(parsed)) {
+        token = parsed[0]?.access_token || parsed[0]?.token || null
+      } else {
+        token = parsed.access_token || parsed.token || null
+      }
+    } catch {
+      token = supabaseAuthToken
+    }
+  }
+
   if (!token || !supabaseUrl || !supabaseAnonKey) return null
   const response = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${token}` }, cache: 'no-store' })
   if (!response.ok) return null

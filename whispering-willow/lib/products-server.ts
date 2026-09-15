@@ -26,6 +26,10 @@ export async function getProducts(): Promise<Product[]> {
     cache: 'no-store',
   })
 
+  if (response.status === 404) {
+    return defaultProducts
+  }
+
   if (!response.ok) {
     throw new Error(`Supabase products request failed with status ${response.status}.`)
   }
