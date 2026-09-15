@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Menu, ShoppingBag, X } from 'lucide-react'
 import { useCart } from '@/components/cart-provider'
 import { CartDrawer } from '@/components/cart-drawer'
@@ -15,6 +15,16 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const { itemCount } = useCart()
+  const [customerEmail, setCustomerEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me').then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => setCustomerEmail(result.authenticated ? result.email || 'Account' : null))
+  }, [])
+
+  const signOut = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    setCustomerEmail(null)
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
@@ -48,6 +58,7 @@ export function SiteHeader() {
           <ShoppingBag className="h-4 w-4" />
           Cart ({itemCount})
         </button>
+        {customerEmail ? <button type="button" onClick={() => void signOut()} className="hidden text-xs text-muted-foreground hover:text-foreground md:block" title={`Sign out ${customerEmail}`}>Sign out</button> : <a href="/login" className="hidden text-xs text-muted-foreground hover:text-foreground md:block">Sign in</a>}
 
         <button
           type="button"

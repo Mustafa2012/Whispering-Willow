@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
 
 type CustomerOrder = {
@@ -24,15 +24,24 @@ const statusLabels: Record<string, string> = {
 
 export default function OrdersPage() {
   const [email, setEmail] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [orders, setOrders] = useState<CustomerOrder[]>([])
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/auth/me').then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => {
+      setIsAuthenticated(result.authenticated)
+      if (result.email) setEmail(result.email)
+    }).finally(() => setIsCheckingAuth(false))
+  }, [])
 
   async function findOrders(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsLoading(true)
     setMessage('')
-    const response = await fetch(`/api/orders?email=${encodeURIComponent(email.trim())}`)
+    const response = await fetch('/api/orders')
     const result = await response.json() as CustomerOrder[] | { error?: string }
     if (!response.ok) {
       setOrders([])
@@ -53,13 +62,10 @@ export default function OrdersPage() {
         <div className="mt-5 max-w-xl">
           <p className="text-xs uppercase tracking-[0.2em] text-primary">Order tracking</p>
           <h1 className="mt-2 font-serif text-5xl text-foreground">Your orders</h1>
-          <p className="mt-4 text-muted-foreground">Enter the email address you used at checkout to view your order history and statuses.</p>
+          <p className="mt-4 text-muted-foreground">Sign in with your email to view your order history and statuses.</p>
         </div>
 
-        <form onSubmit={findOrders} className="mt-8 flex flex-col gap-3 rounded-2xl border border-border/70 bg-background p-4 sm:flex-row">
-          <label className="flex-1"><span className="sr-only">Checkout email</span><input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Your checkout email" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring" /></label>
-          <button type="submit" disabled={isLoading} className="rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground disabled:opacity-60">{isLoading ? 'Searching...' : 'Find orders'}</button>
-        </form>
+        {isCheckingAuth ? <p className="mt-8 text-sm text-muted-foreground">Checking your account...</p> : !isAuthenticated ? <div className="mt-8 rounded-2xl border border-border/70 bg-background p-6"><p className="text-sm text-muted-foreground">Sign in to securely view orders linked to your account.</p><a href="/login" className="mt-4 inline-block rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground">Sign in with email</a></div> : <form onSubmit={findOrders} className="mt-8 flex flex-col gap-3 rounded-2xl border border-border/70 bg-background p-4 sm:flex-row"><label className="flex-1"><span className="sr-only">Account email</span><input type="email" readOnly value={email} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none" /></label><button type="submit" disabled={isLoading} className="rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground disabled:opacity-60">{isLoading ? 'Loading...' : 'Show my orders'}</button></form>}
 
         {message ? <p className="mt-6 text-sm text-muted-foreground">{message}</p> : null}
         <div className="mt-8 space-y-5">

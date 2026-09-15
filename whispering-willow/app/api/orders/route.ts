@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getProducts, isProductDatabaseConfigured } from '@/lib/products-server'
+import { getCustomerSession } from '@/lib/customer-auth'
 
 type OrderRequest = {
   customerName?: string
@@ -21,8 +22,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Order history is not configured yet.' }, { status: 503 })
   }
 
-  const email = new URL(request.url).searchParams.get('email')?.trim().toLowerCase()
-  if (!email) return NextResponse.json({ error: 'An email address is required.' }, { status: 400 })
+  const user = await getCustomerSession()
+  const email = user?.email?.trim().toLowerCase()
+  if (!user || !email) return NextResponse.json({ error: 'Please sign in to view your orders.' }, { status: 401 })
 
   const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` }
   const ordersResponse = await fetch(`${supabaseUrl}/rest/v1/orders?select=id,order_number,email,total,status,payment_method,created_at,address&email=eq.${encodeURIComponent(email)}&order=created_at.desc`, { headers, cache: 'no-store' })
@@ -45,9 +47,11 @@ export async function POST(request: Request) {
   }
 
   try {
+    const user = await getCustomerSession()
+    if (!user?.email) return NextResponse.json({ error: 'Please sign in before placing an order.' }, { status: 401 })
     const body = (await request.json()) as OrderRequest
     const customerName = body.customerName?.trim()
-    const email = body.email?.trim()
+    const email = user.email.trim().toLowerCase()
     const phone = body.phone?.trim()
     const address = body.address?.trim()
     const paymentMethod = body.paymentMethod
@@ -72,7 +76,7 @@ export async function POST(request: Request) {
     const orderResponse = await fetch(`${supabaseUrl}/rest/v1/orders`, {
       method: 'POST',
       headers: { ...headers, Prefer: 'return=representation' },
-      body: JSON.stringify({ customer_name: customerName, email, phone, address, payment_method: paymentMethod, transaction_reference: body.transactionReference?.trim() || null, proof_url: body.proofUrl?.trim() || null, notes: body.notes?.trim() || null, total, status: 'pending' }),
+      body: JSON.stringify({ user_id: user.id, customer_name: customerName, email, phone, address, payment_method: paymentMethod, transaction_reference: body.transactionReference?.trim() || null, proof_url: body.proofUrl?.trim() || null, notes: body.notes?.trim() || null, total, status: 'pending' }),
     })
     if (!orderResponse.ok) throw new Error('Unable to create order.')
     const [order] = await orderResponse.json() as Array<{ id: number; order_number?: string }>

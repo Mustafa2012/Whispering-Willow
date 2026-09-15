@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
 import { useCart } from '@/components/cart-provider'
 
@@ -13,6 +13,14 @@ export default function CheckoutPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [proofUrl, setProofUrl] = useState('')
   const [message, setMessage] = useState('')
+  const [customerEmail, setCustomerEmail] = useState<string | null>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/auth/me').then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => {
+      setCustomerEmail(result.authenticated ? result.email || null : null)
+    }).finally(() => setIsCheckingAuth(false))
+  }, [])
 
   async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -52,6 +60,14 @@ export default function CheckoutPage() {
     return <main className="mx-auto min-h-screen max-w-3xl px-6 py-20 text-center"><h1 className="font-serif text-4xl">Your cart is empty</h1><a href="/#shop" className="mt-6 inline-block rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground">Continue shopping</a></main>
   }
 
+  if (isCheckingAuth) {
+    return <main className="flex min-h-screen items-center justify-center bg-secondary/30 px-6"><p className="text-sm text-muted-foreground">Checking your account...</p></main>
+  }
+
+  if (!customerEmail) {
+    return <main className="flex min-h-screen items-center justify-center bg-secondary/30 px-6"><section className="max-w-md rounded-2xl border border-border/70 bg-background p-8 text-center"><h1 className="font-serif text-4xl">Sign in to checkout</h1><p className="mt-3 text-muted-foreground">Use your email to receive a one-time code before placing your order.</p><a href="/login" className="mt-6 inline-block rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground">Sign in with email</a></section></main>
+  }
+
   return <main className="min-h-screen bg-secondary/30 px-6 py-12 md:py-20">
     <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1fr_320px]">
       <section className="rounded-2xl border border-border/70 bg-background p-6 md:p-8">
@@ -59,7 +75,7 @@ export default function CheckoutPage() {
         <h1 className="mt-5 font-serif text-4xl">Checkout</h1>
         <form onSubmit={submitOrder} className="mt-8 space-y-4">
           <input name="customerName" required placeholder="Full name" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none" />
-          <div className="grid gap-4 sm:grid-cols-2"><input name="email" type="email" required placeholder="Email address" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none" /><input name="phone" required placeholder="Phone number" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none" /></div>
+          <div className="grid gap-4 sm:grid-cols-2"><input name="email" type="email" required readOnly value={customerEmail} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none" /><input name="phone" required placeholder="Phone number" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none" /></div>
           <textarea name="address" required rows={4} placeholder="Complete delivery address" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none" />
           <div className="grid gap-3 sm:grid-cols-2"><label className={`rounded-xl border p-4 ${paymentMethod === 'cod' ? 'border-primary bg-primary/5' : 'border-border'}`}><input type="radio" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="mr-2" />Cash on delivery</label><label className={`rounded-xl border p-4 ${paymentMethod === 'bank_transfer' ? 'border-primary bg-primary/5' : 'border-border'}`}><input type="radio" checked={paymentMethod === 'bank_transfer'} onChange={() => setPaymentMethod('bank_transfer')} className="mr-2" />Bank transfer</label></div>
           {paymentMethod === 'bank_transfer' ? <div className="space-y-3 rounded-xl bg-secondary/30 p-4 text-sm"><p className="font-medium">Transfer to: Whispering Willow, Meezan Bank, Account 0000000000</p><input name="transactionReference" required placeholder="Transaction reference" className="w-full rounded-xl border border-border bg-card px-4 py-3 outline-none" /><label className="block rounded-xl border border-dashed border-primary/50 p-4 text-center"><span className="block text-muted-foreground">{isUploading ? 'Uploading proof...' : proofUrl ? 'Proof uploaded' : 'Upload transaction proof'}</span><input type="file" accept="image/*" required={!proofUrl} onChange={(event) => void uploadProof(event.target.files?.[0])} className="sr-only" /></label></div> : null}
