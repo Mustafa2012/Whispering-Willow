@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { Menu, ShoppingBag, X } from 'lucide-react'
+import { LogOut, Menu, ShoppingBag, X } from 'lucide-react'
 import { useCart } from '@/components/cart-provider'
 import { CartDrawer } from '@/components/cart-drawer'
 import { customerSupabase, getCustomerAuthHeaders } from '@/lib/customer-browser'
@@ -65,7 +65,7 @@ export function SiteHeader() {
           <ShoppingBag className="h-4 w-4" />
           Cart ({itemCount})
         </button>
-        {customerEmail ? <button type="button" onClick={() => void signOut()} className="hidden h-9 w-9 overflow-hidden rounded-full border border-gold/60 md:block" title={`Sign out ${customerEmail}`} aria-label={`Sign out ${customerEmail}`}>{customerAvatar ? <img src={customerAvatar} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center bg-secondary text-xs text-foreground">{customerEmail.slice(0, 1).toUpperCase()}</span>}</button> : <a href="/login" className="hidden text-xs text-muted-foreground hover:text-foreground md:block">Sign in</a>}
+        {customerEmail ? <div className="hidden items-center gap-3 md:flex"><a href="/orders" className="h-9 w-9 overflow-hidden rounded-full border border-gold/60" title={`View orders for ${customerEmail}`} aria-label={`View orders for ${customerEmail}`}>{customerAvatar ? <img src={customerAvatar} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center bg-secondary text-xs text-foreground">{customerEmail.slice(0, 1).toUpperCase()}</span>}</a><button type="button" onClick={() => void signOut()} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground" title="Sign out"><LogOut className="h-4 w-4" />Sign out</button></div> : <a href="/login" className="hidden text-xs text-muted-foreground hover:text-foreground md:block">Sign in</a>}
 
         <button
           type="button"

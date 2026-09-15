@@ -28,6 +28,7 @@ export async function GET(request: Request) {
 
   const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` }
   const ordersResponse = await fetch(`${supabaseUrl}/rest/v1/orders?select=id,order_number,email,total,status,payment_method,created_at,address&email=eq.${encodeURIComponent(email)}&order=created_at.desc`, { headers, cache: 'no-store' })
+  if (ordersResponse.status === 404) return NextResponse.json({ error: 'Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.' }, { status: 503 })
   if (!ordersResponse.ok) return NextResponse.json({ error: 'Unable to load order history.' }, { status: 500 })
 
   const orders = await ordersResponse.json() as Array<{ id: number; order_number: string; email: string; total: number; status: string; payment_method: string; created_at: string; address: string }>
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
 
   const orderIds = orders.map((order) => order.id).join(',')
   const itemsResponse = await fetch(`${supabaseUrl}/rest/v1/order_items?select=order_id,name,price,quantity,total&order_id=in.(${orderIds})`, { headers, cache: 'no-store' })
+  if (itemsResponse.status === 404) return NextResponse.json({ error: 'Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.' }, { status: 503 })
   if (!itemsResponse.ok) return NextResponse.json({ error: 'Unable to load order items.' }, { status: 500 })
   const items = await itemsResponse.json() as Array<{ order_id: number; name: string; price: number; quantity: number; total: number }>
 
@@ -78,12 +80,14 @@ export async function POST(request: Request) {
       headers: { ...headers, Prefer: 'return=representation' },
       body: JSON.stringify({ user_id: user.id, customer_name: customerName, email, phone, address, payment_method: paymentMethod, transaction_reference: body.transactionReference?.trim() || null, proof_url: body.proofUrl?.trim() || null, notes: body.notes?.trim() || null, total, status: 'pending' }),
     })
+    if (orderResponse.status === 404) throw new Error('Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.')
     if (!orderResponse.ok) throw new Error('Unable to create order.')
     const [order] = await orderResponse.json() as Array<{ id: number; order_number?: string }>
     const itemsResponse = await fetch(`${supabaseUrl}/rest/v1/order_items`, {
       method: 'POST', headers,
       body: JSON.stringify(orderItems.map((item) => ({ ...item, order_id: order.id }))),
     })
+    if (itemsResponse.status === 404) throw new Error('Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.')
     if (!itemsResponse.ok) throw new Error('Unable to save order items.')
     return NextResponse.json({ orderNumber: order.order_number || order.id }, { status: 201 })
   } catch (error) {
