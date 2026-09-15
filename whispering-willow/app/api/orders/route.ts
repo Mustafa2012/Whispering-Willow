@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Order history is not configured yet.' }, { status: 503 })
   }
 
-  const user = await getCustomerSession()
+  const user = await getCustomerSession(request)
   const email = user?.email?.trim().toLowerCase()
   if (!user || !email) return NextResponse.json({ error: 'Please sign in to view your orders.' }, { status: 401 })
 
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const user = await getCustomerSession()
+    const user = await getCustomerSession(request)
     if (!user?.email) return NextResponse.json({ error: 'Please sign in before placing an order.' }, { status: 401 })
     const body = (await request.json()) as OrderRequest
     const customerName = body.customerName?.trim()

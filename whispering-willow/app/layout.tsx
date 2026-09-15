@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Jost } from 'next/font/google'
 import { CartProvider } from '@/components/cart-provider'
+import { CustomerSessionSync } from '@/components/customer-session-sync'
 import './globals.css'
 
 const cormorant = Cormorant_Garamond({
@@ -38,7 +39,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${jost.variable} bg-background`}>
       <body className="font-sans antialiased">
-        <CartProvider>{children}</CartProvider>
+        <CartProvider>
+          <CustomerSessionSync />
+          {children}
+        </CartProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

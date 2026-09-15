@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
+import { getCustomerAuthHeaders } from '@/lib/customer-browser'
 
 type CustomerOrder = {
   order_number: string
@@ -31,7 +32,7 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    fetch('/api/auth/me').then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => {
+    getCustomerAuthHeaders().then((headers) => fetch('/api/auth/me', { headers })).then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => {
       setIsAuthenticated(result.authenticated)
       if (result.email) setEmail(result.email)
     }).finally(() => setIsCheckingAuth(false))
@@ -41,7 +42,8 @@ export default function OrdersPage() {
     event.preventDefault()
     setIsLoading(true)
     setMessage('')
-    const response = await fetch('/api/orders')
+    const headers = await getCustomerAuthHeaders()
+    const response = await fetch('/api/orders', { headers })
     const result = await response.json() as CustomerOrder[] | { error?: string }
     if (!response.ok) {
       setOrders([])

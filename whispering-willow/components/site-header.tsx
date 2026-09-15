@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Menu, ShoppingBag, X } from 'lucide-react'
 import { useCart } from '@/components/cart-provider'
 import { CartDrawer } from '@/components/cart-drawer'
+import { customerSupabase, getCustomerAuthHeaders } from '@/lib/customer-browser'
 
 const links = [
   { label: 'Shop', href: '#shop' },
@@ -16,14 +17,20 @@ export function SiteHeader() {
   const [cartOpen, setCartOpen] = useState(false)
   const { itemCount } = useCart()
   const [customerEmail, setCustomerEmail] = useState<string | null>(null)
+  const [customerAvatar, setCustomerAvatar] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/auth/me').then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => setCustomerEmail(result.authenticated ? result.email || 'Account' : null))
+    getCustomerAuthHeaders().then((headers) => fetch('/api/auth/me', { headers })).then((response) => response.json()).then((result: { authenticated: boolean; email?: string; avatarUrl?: string }) => {
+      setCustomerEmail(result.authenticated ? result.email || 'Account' : null)
+      setCustomerAvatar(result.authenticated ? result.avatarUrl || null : null)
+    })
   }, [])
 
   const signOut = async () => {
+    await customerSupabase?.auth.signOut()
     await fetch('/api/auth/logout', { method: 'POST' })
     setCustomerEmail(null)
+    setCustomerAvatar(null)
   }
 
   return (
@@ -58,7 +65,7 @@ export function SiteHeader() {
           <ShoppingBag className="h-4 w-4" />
           Cart ({itemCount})
         </button>
-        {customerEmail ? <button type="button" onClick={() => void signOut()} className="hidden text-xs text-muted-foreground hover:text-foreground md:block" title={`Sign out ${customerEmail}`}>Sign out</button> : <a href="/login" className="hidden text-xs text-muted-foreground hover:text-foreground md:block">Sign in</a>}
+        {customerEmail ? <button type="button" onClick={() => void signOut()} className="hidden h-9 w-9 overflow-hidden rounded-full border border-gold/60 md:block" title={`Sign out ${customerEmail}`} aria-label={`Sign out ${customerEmail}`}>{customerAvatar ? <img src={customerAvatar} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center bg-secondary text-xs text-foreground">{customerEmail.slice(0, 1).toUpperCase()}</span>}</button> : <a href="/login" className="hidden text-xs text-muted-foreground hover:text-foreground md:block">Sign in</a>}
 
         <button
           type="button"

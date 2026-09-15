@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
 import { useCart } from '@/components/cart-provider'
+import { getCustomerAuthHeaders } from '@/lib/customer-browser'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -17,7 +18,7 @@ export default function CheckoutPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
 
   useEffect(() => {
-    fetch('/api/auth/me').then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => {
+    getCustomerAuthHeaders().then((headers) => fetch('/api/auth/me', { headers })).then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => {
       setCustomerEmail(result.authenticated ? result.email || null : null)
     }).finally(() => setIsCheckingAuth(false))
   }, [])
@@ -27,8 +28,9 @@ export default function CheckoutPage() {
     setIsSubmitting(true)
     setMessage('')
     const form = new FormData(event.currentTarget)
+    const authHeaders = await getCustomerAuthHeaders()
     const response = await fetch('/api/orders', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { ...authHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         customerName: form.get('customerName'), email: form.get('email'), phone: form.get('phone'), address: form.get('address'), notes: form.get('notes'), paymentMethod,
         transactionReference: form.get('transactionReference'), proofUrl, items: items.map((item) => ({ name: item.name, quantity: item.quantity })),
