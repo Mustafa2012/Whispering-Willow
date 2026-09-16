@@ -57,13 +57,69 @@ export default function OrdersPage() {
     void loadOrders()
   }, [])
 
-  function generateReceipt(order: CustomerOrder) {
-    const items = order.items.map((item) => `<tr><td>${item.name} x ${item.quantity}</td><td>${formatPrice(item.total)}</td></tr>`).join('')
-    const receiptHtml = `<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${order.order_number}</title><style>body{font-family:Arial,sans-serif;max-width:680px;margin:48px auto;padding:0 24px;color:#332d27}h1{font-size:28px}p{color:#6f665d}.header{display:flex;justify-content:space-between;border-bottom:1px solid #d8d0c5;padding-bottom:20px}.details{margin:24px 0}table{width:100%;border-collapse:collapse}td{padding:10px 0;border-bottom:1px solid #e6dfd6}td:last-child{text-align:right}.total{font-weight:700;font-size:18px;text-align:right;margin-top:24px}</style></head><body><div class="header"><div><h1>Whispering Willow</h1><p>Order receipt</p></div><div><strong>${order.order_number}</strong><p>${new Date(order.created_at).toLocaleDateString()}</p></div></div><div class="details"><p><strong>Status:</strong> ${statusLabels[order.status] || order.status}</p><p><strong>Payment:</strong> ${order.payment_method.replace('_', ' ')}</p><p><strong>Delivery:</strong> ${order.address}</p></div><table>${items}</table><p class="total">Total: ${formatPrice(order.total)}</p></body></html>`
-    const receiptUrl = URL.createObjectURL(new Blob([receiptHtml], { type: 'text/html' }))
+  async function generateReceipt(order: CustomerOrder) {
+    const width = 900
+    const lineHeight = 42
+    const height = 470 + order.items.length * lineHeight
+    const canvas = document.createElement('canvas')
+    canvas.width = width * 2
+    canvas.height = height * 2
+    const context = canvas.getContext('2d')
+    if (!context) return
+
+    context.scale(2, 2)
+    context.fillStyle = '#fbf8f2'
+    context.fillRect(0, 0, width, height)
+    context.fillStyle = '#332d27'
+    context.font = 'bold 34px Georgia, serif'
+    context.fillText('Whispering Willow', 60, 70)
+    context.font = '20px Arial, sans-serif'
+    context.fillStyle = '#6f665d'
+    context.fillText('Order receipt', 60, 105)
+    context.textAlign = 'right'
+    context.fillStyle = '#332d27'
+    context.font = 'bold 22px Arial, sans-serif'
+    context.fillText(order.order_number, width - 60, 70)
+    context.font = '18px Arial, sans-serif'
+    context.fillStyle = '#6f665d'
+    context.fillText(new Date(order.created_at).toLocaleDateString(), width - 60, 105)
+    context.textAlign = 'left'
+    context.strokeStyle = '#d8d0c5'
+    context.beginPath()
+    context.moveTo(60, 135)
+    context.lineTo(width - 60, 135)
+    context.stroke()
+    context.fillStyle = '#332d27'
+    context.font = '18px Arial, sans-serif'
+    context.fillText(`Status: ${statusLabels[order.status] || order.status}`, 60, 180)
+    context.fillText(`Payment: ${order.payment_method.replace('_', ' ')}`, 60, 215)
+    context.fillText(`Delivery: ${order.address}`, 60, 250)
+    let itemY = 315
+    order.items.forEach((item) => {
+      context.fillStyle = '#6f665d'
+      context.fillText(`${item.name} x ${item.quantity}`, 60, itemY)
+      context.textAlign = 'right'
+      context.fillStyle = '#332d27'
+      context.fillText(formatPrice(item.total), width - 60, itemY)
+      context.textAlign = 'left'
+      context.strokeStyle = '#e6dfd6'
+      context.beginPath()
+      context.moveTo(60, itemY + 14)
+      context.lineTo(width - 60, itemY + 14)
+      context.stroke()
+      itemY += lineHeight
+    })
+    context.textAlign = 'right'
+    context.font = 'bold 24px Arial, sans-serif'
+    context.fillStyle = '#332d27'
+    context.fillText(`Total: ${formatPrice(order.total)}`, width - 60, itemY + 35)
+
+    const imageBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
+    if (!imageBlob) return
+    const receiptUrl = URL.createObjectURL(imageBlob)
     const downloadLink = document.createElement('a')
     downloadLink.href = receiptUrl
-    downloadLink.download = `receipt-${order.order_number}.html`
+    downloadLink.download = `receipt-${order.order_number}.png`
     document.body.appendChild(downloadLink)
     downloadLink.click()
     downloadLink.remove()
