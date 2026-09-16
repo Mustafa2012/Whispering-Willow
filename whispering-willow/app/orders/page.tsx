@@ -70,12 +70,21 @@ export default function OrdersPage() {
     context.scale(2, 2)
     context.fillStyle = '#fbf8f2'
     context.fillRect(0, 0, width, height)
+    const logo = new Image()
+    logo.src = '/whispering-willow-logo.png'
+    await new Promise<void>((resolve) => {
+      logo.onload = () => resolve()
+      logo.onerror = () => resolve()
+    })
+    if (logo.complete && logo.naturalWidth > 0) {
+      context.drawImage(logo, 60, 35, 72, 72)
+    }
     context.fillStyle = '#332d27'
     context.font = 'bold 34px Georgia, serif'
-    context.fillText('Whispering Willow', 60, 70)
+    context.fillText('Whispering Willow', 155, 70)
     context.font = '20px Arial, sans-serif'
     context.fillStyle = '#6f665d'
-    context.fillText('Order receipt', 60, 105)
+    context.fillText('Order receipt', 155, 105)
     context.textAlign = 'right'
     context.fillStyle = '#332d27'
     context.font = 'bold 22px Arial, sans-serif'
