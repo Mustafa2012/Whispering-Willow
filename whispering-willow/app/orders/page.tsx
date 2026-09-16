@@ -9,13 +9,14 @@ type CustomerOrder = {
   order_number: string
   subtotal?: number
   discount?: number
+  discount_code?: string
   delivery_charge?: number
   total: number
   status: string
   payment_method: string
   created_at: string
   address: string
-  items: Array<{ name: string; quantity: number; total: number }>
+  items: Array<{ name: string; price: number; quantity: number; total: number }>
 }
 
 const statusLabels: Record<string, string> = {
@@ -64,7 +65,7 @@ export default function OrdersPage() {
   async function generateReceipt(order: CustomerOrder) {
     const width = 900
     const lineHeight = 42
-    const height = 555 + order.items.length * lineHeight
+    const height = 610 + order.items.length * lineHeight
     const canvas = document.createElement('canvas')
     canvas.width = width * 2
     canvas.height = height * 2
@@ -107,14 +108,20 @@ export default function OrdersPage() {
     context.fillText(`Status: ${statusLabels[order.status] || order.status}`, 60, 180)
     context.fillText(`Payment: ${order.payment_method.replace('_', ' ')}`, 60, 215)
     context.fillText(`Delivery: ${order.address}`, 60, 250)
-    let itemY = 315
+    if (order.discount_code) context.fillText(`Discount code: ${order.discount_code}`, 60, 285)
+    context.font = 'bold 18px Arial, sans-serif'
+    context.fillStyle = '#332d27'
+    context.fillText('Item', 60, 330)
+    context.fillText('Price', 570, 330)
+    context.fillText('Quantity', 740, 330)
+    let itemY = 370
     order.items.forEach((item) => {
+      context.font = '18px Arial, sans-serif'
       context.fillStyle = '#6f665d'
-      context.fillText(`${item.name} x ${item.quantity}`, 60, itemY)
-      context.textAlign = 'right'
+      context.fillText(item.name, 60, itemY)
+      context.fillText(formatPrice(item.price), 570, itemY)
+      context.fillText(String(item.quantity), 740, itemY)
       context.fillStyle = '#332d27'
-      context.fillText(formatPrice(item.total), width - 60, itemY)
-      context.textAlign = 'left'
       context.strokeStyle = '#e6dfd6'
       context.beginPath()
       context.moveTo(60, itemY + 14)
@@ -127,7 +134,7 @@ export default function OrdersPage() {
     context.fillStyle = '#6f665d'
     context.fillText(`Subtotal: ${formatPrice(order.subtotal ?? Math.max(0, order.total - (order.delivery_charge ?? DELIVERY_CHARGE) + (order.discount ?? ORDER_DISCOUNT)))}`, width - 60, itemY + 35)
     context.fillText(`Discount: -${formatPrice(order.discount ?? ORDER_DISCOUNT)}`, width - 60, itemY + 68)
-    context.fillText(`Delivery charge x 1: ${formatPrice(order.delivery_charge ?? DELIVERY_CHARGE)}`, width - 60, itemY + 101)
+    context.fillText(`Delivery charges: ${formatPrice(order.delivery_charge ?? DELIVERY_CHARGE)}`, width - 60, itemY + 101)
     context.textAlign = 'right'
     context.font = 'bold 24px Arial, sans-serif'
     context.fillStyle = '#332d27'

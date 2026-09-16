@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const body = await request.json() as { code?: string; discountType?: string; value?: number; expiresAt?: string; usageLimit?: number | null }
   const code = body.code?.trim().toUpperCase()
   const value = Number(body.value)
-  if (!code || !/^[A-Z0-9_-]{3,30}$/.test(code) || !['percentage', 'fixed'].includes(body.discountType || '') || !Number.isFinite(value) || value <= 0 || (body.discountType === 'percentage' && value > 100)) {
+  if (!code || !/^[A-Z0-9_-]{3,30}$/.test(code) || !['percentage', 'fixed'].includes(body.discountType || '') || !Number.isFinite(value) || value <= 0 || (body.discountType === 'percentage' && (!Number.isInteger(value) || value > 100))) {
     return NextResponse.json({ error: 'Enter a valid code, discount type, and value.' }, { status: 400 })
   }
   const response = await fetch(`${supabaseUrl}/rest/v1/discount_codes`, { method: 'POST', headers: { ...adminHeaders(), Prefer: 'return=representation' }, body: JSON.stringify({ code, discount_type: body.discountType, value, expires_at: body.expiresAt || null, usage_limit: body.usageLimit ? Math.floor(body.usageLimit) : null }) })
