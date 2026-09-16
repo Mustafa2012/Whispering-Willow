@@ -58,14 +58,16 @@ export default function OrdersPage() {
   }, [])
 
   function generateReceipt(order: CustomerOrder) {
-    const receiptWindow = window.open('', '_blank', 'noopener,noreferrer')
-    if (!receiptWindow) return
-
     const items = order.items.map((item) => `<tr><td>${item.name} x ${item.quantity}</td><td>${formatPrice(item.total)}</td></tr>`).join('')
-    receiptWindow.document.write(`<!doctype html><html><head><title>Receipt ${order.order_number}</title><style>body{font-family:Arial,sans-serif;max-width:680px;margin:48px auto;padding:0 24px;color:#332d27}h1{font-size:28px}p{color:#6f665d}.header{display:flex;justify-content:space-between;border-bottom:1px solid #d8d0c5;padding-bottom:20px}.details{margin:24px 0}table{width:100%;border-collapse:collapse}td{padding:10px 0;border-bottom:1px solid #e6dfd6}td:last-child{text-align:right}.total{font-weight:700;font-size:18px;text-align:right;margin-top:24px}@media print{body{margin:0}}</style></head><body><div class="header"><div><h1>Whispering Willow</h1><p>Order receipt</p></div><div><strong>${order.order_number}</strong><p>${new Date(order.created_at).toLocaleDateString()}</p></div></div><div class="details"><p><strong>Status:</strong> ${statusLabels[order.status] || order.status}</p><p><strong>Payment:</strong> ${order.payment_method.replace('_', ' ')}</p><p><strong>Delivery:</strong> ${order.address}</p></div><table>${items}</table><p class="total">Total: ${formatPrice(order.total)}</p></body></html>`)
-    receiptWindow.document.close()
-    receiptWindow.focus()
-    receiptWindow.print()
+    const receiptHtml = `<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${order.order_number}</title><style>body{font-family:Arial,sans-serif;max-width:680px;margin:48px auto;padding:0 24px;color:#332d27}h1{font-size:28px}p{color:#6f665d}.header{display:flex;justify-content:space-between;border-bottom:1px solid #d8d0c5;padding-bottom:20px}.details{margin:24px 0}table{width:100%;border-collapse:collapse}td{padding:10px 0;border-bottom:1px solid #e6dfd6}td:last-child{text-align:right}.total{font-weight:700;font-size:18px;text-align:right;margin-top:24px}</style></head><body><div class="header"><div><h1>Whispering Willow</h1><p>Order receipt</p></div><div><strong>${order.order_number}</strong><p>${new Date(order.created_at).toLocaleDateString()}</p></div></div><div class="details"><p><strong>Status:</strong> ${statusLabels[order.status] || order.status}</p><p><strong>Payment:</strong> ${order.payment_method.replace('_', ' ')}</p><p><strong>Delivery:</strong> ${order.address}</p></div><table>${items}</table><p class="total">Total: ${formatPrice(order.total)}</p></body></html>`
+    const receiptUrl = URL.createObjectURL(new Blob([receiptHtml], { type: 'text/html' }))
+    const downloadLink = document.createElement('a')
+    downloadLink.href = receiptUrl
+    downloadLink.download = `receipt-${order.order_number}.html`
+    document.body.appendChild(downloadLink)
+    downloadLink.click()
+    downloadLink.remove()
+    URL.revokeObjectURL(receiptUrl)
   }
 
   return (
