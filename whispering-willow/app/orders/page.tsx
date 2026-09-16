@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
 import { getCustomerAuthHeaders } from '@/lib/customer-browser'
+import { DELIVERY_CHARGE, ORDER_DISCOUNT } from '@/lib/order-pricing'
 
 type CustomerOrder = {
   order_number: string
+  subtotal?: number
+  discount?: number
+  delivery_charge?: number
   total: number
   status: string
   payment_method: string
@@ -60,7 +64,7 @@ export default function OrdersPage() {
   async function generateReceipt(order: CustomerOrder) {
     const width = 900
     const lineHeight = 42
-    const height = 470 + order.items.length * lineHeight
+    const height = 555 + order.items.length * lineHeight
     const canvas = document.createElement('canvas')
     canvas.width = width * 2
     canvas.height = height * 2
@@ -119,9 +123,15 @@ export default function OrdersPage() {
       itemY += lineHeight
     })
     context.textAlign = 'right'
+    context.font = '18px Arial, sans-serif'
+    context.fillStyle = '#6f665d'
+    context.fillText(`Subtotal: ${formatPrice(order.subtotal ?? Math.max(0, order.total - (order.delivery_charge ?? DELIVERY_CHARGE) + (order.discount ?? ORDER_DISCOUNT)))}`, width - 60, itemY + 35)
+    context.fillText(`Discount: -${formatPrice(order.discount ?? ORDER_DISCOUNT)}`, width - 60, itemY + 68)
+    context.fillText(`Delivery charge x 1: ${formatPrice(order.delivery_charge ?? DELIVERY_CHARGE)}`, width - 60, itemY + 101)
+    context.textAlign = 'right'
     context.font = 'bold 24px Arial, sans-serif'
     context.fillStyle = '#332d27'
-    context.fillText(`Total: ${formatPrice(order.total)}`, width - 60, itemY + 35)
+    context.fillText(`Total: ${formatPrice(order.total)}`, width - 60, itemY + 145)
 
     const imageBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
     if (!imageBlob) return

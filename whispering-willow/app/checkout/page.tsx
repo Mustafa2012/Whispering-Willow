@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
 import { useCart } from '@/components/cart-provider'
 import { getCustomerAuthHeaders } from '@/lib/customer-browser'
+import { calculateOrderTotal, DELIVERY_CHARGE, ORDER_DISCOUNT } from '@/lib/order-pricing'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -16,6 +17,9 @@ export default function CheckoutPage() {
   const [message, setMessage] = useState('')
   const [customerEmail, setCustomerEmail] = useState<string | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [discountCode, setDiscountCode] = useState('')
+  const [appliedDiscount, setAppliedDiscount] = useState(0)
+  const [discountMessage, setDiscountMessage] = useState('')
 
   useEffect(() => {
     getCustomerAuthHeaders().then((headers) => fetch('/api/auth/me', { headers })).then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => {
@@ -34,6 +38,7 @@ export default function CheckoutPage() {
       body: JSON.stringify({
         customerName: form.get('customerName'), email: form.get('email'), phone: form.get('phone'), address: form.get('address'), notes: form.get('notes'), paymentMethod,
         transactionReference: form.get('transactionReference'), proofUrl, items: items.map((item) => ({ name: item.name, quantity: item.quantity })),
+        discountCode: discountCode || undefined,
       }),
     })
     const result = await response.json() as { orderNumber?: string | number; error?: string }
@@ -56,6 +61,22 @@ export default function CheckoutPage() {
     setMessage(response.ok ? '' : result.error || 'Unable to upload proof.')
     if (result.url) setProofUrl(result.url)
     setIsUploading(false)
+  }
+
+  async function applyDiscountCode() {
+    const code = discountCode.trim().toUpperCase()
+    if (!code) return
+    const response = await fetch(`/api/discounts?code=${encodeURIComponent(code)}`)
+    const result = await response.json() as { code?: string; discountType?: 'percentage' | 'fixed'; value?: number; error?: string }
+    if (!response.ok || !result.discountType || typeof result.value !== 'number') {
+      setAppliedDiscount(0)
+      setDiscountMessage(result.error || 'Unable to apply this discount code.')
+      return
+    }
+    const discount = result.discountType === 'percentage' ? subtotal * result.value / 100 : result.value
+    setDiscountCode(result.code || code)
+    setAppliedDiscount(Math.min(subtotal, Math.max(0, discount)))
+    setDiscountMessage(`${result.code || code} applied.`)
   }
 
   if (items.length === 0) {
@@ -86,7 +107,7 @@ export default function CheckoutPage() {
           <button disabled={isSubmitting} className="w-full rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground disabled:opacity-60">{isSubmitting ? 'Placing order...' : 'Place order'}</button>
         </form>
       </section>
-      <aside className="h-fit rounded-2xl border border-border/70 bg-background p-6"><h2 className="font-serif text-2xl">Order summary</h2><div className="mt-5 space-y-3">{items.map((item) => <div key={item.name} className="flex justify-between gap-3 text-sm"><span>{item.name} × {item.quantity}</span><span>{formatPrice(item.price * item.quantity)}</span></div>)}</div><div className="mt-6 flex justify-between border-t border-border pt-4 font-medium"><span>Total</span><span>{formatPrice(subtotal)}</span></div></aside>
+      <aside className="h-fit rounded-2xl border border-border/70 bg-background p-6"><h2 className="font-serif text-2xl">Order summary</h2><div className="mt-5 space-y-3">{items.map((item) => <div key={item.name} className="flex justify-between gap-3 text-sm"><span>{item.name} × {item.quantity}</span><span>{formatPrice(item.price * item.quantity)}</span></div>)}</div><div className="mt-6 flex gap-2 border-t border-border pt-4"><input value={discountCode} onChange={(event) => setDiscountCode(event.target.value.toUpperCase())} placeholder="Discount code" className="min-w-0 flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none" /><button type="button" onClick={() => void applyDiscountCode()} className="rounded-xl bg-foreground px-3 py-2 text-xs text-background">Apply</button></div>{discountMessage ? <p className="mt-2 text-xs text-muted-foreground">{discountMessage}</p> : null}<div className="mt-4 space-y-2 border-t border-border pt-4 text-sm"><div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div><div className="flex justify-between"><span>Discount</span><span>-{formatPrice(appliedDiscount || ORDER_DISCOUNT)}</span></div><div className="flex justify-between"><span>Delivery charge × 1</span><span>{formatPrice(DELIVERY_CHARGE)}</span></div></div><div className="mt-4 flex justify-between border-t border-border pt-4 font-medium"><span>Total</span><span>{formatPrice(calculateOrderTotal(subtotal, appliedDiscount))}</span></div></aside>
     </div>
   </main>
 }

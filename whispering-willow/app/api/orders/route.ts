@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getProducts, isProductDatabaseConfigured } from '@/lib/products-server'
 import { getCustomerSession } from '@/lib/customer-auth'
+import { calculateOrderTotal, DELIVERY_CHARGE, ORDER_DISCOUNT } from '@/lib/order-pricing'
 
 type OrderRequest = {
   customerName?: string
@@ -8,6 +9,7 @@ type OrderRequest = {
   phone?: string
   address?: string
   paymentMethod?: 'cod' | 'bank_transfer'
+  discountCode?: string
   transactionReference?: string
   proofUrl?: string
   notes?: string
@@ -27,11 +29,11 @@ export async function GET(request: Request) {
   if (!user || !email) return NextResponse.json({ error: 'Please sign in to view your orders.' }, { status: 401 })
 
   const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` }
-  const ordersResponse = await fetch(`${supabaseUrl}/rest/v1/orders?select=id,order_number,email,total,status,payment_method,created_at,address&email=eq.${encodeURIComponent(email)}&order=created_at.desc`, { headers, cache: 'no-store' })
+    const ordersResponse = await fetch(`${supabaseUrl}/rest/v1/orders?select=id,order_number,email,total,subtotal,discount,discount_code,delivery_charge,status,payment_method,created_at,address&email=eq.${encodeURIComponent(email)}&order=created_at.desc`, { headers, cache: 'no-store' })
   if (ordersResponse.status === 404) return NextResponse.json({ error: 'Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.' }, { status: 503 })
   if (!ordersResponse.ok) return NextResponse.json({ error: 'Unable to load order history.' }, { status: 500 })
 
-  const orders = await ordersResponse.json() as Array<{ id: number; order_number: string; email: string; total: number; status: string; payment_method: string; created_at: string; address: string }>
+    const orders = await ordersResponse.json() as Array<{ id: number; order_number: string; email: string; total: number; subtotal: number; discount: number; discount_code?: string; delivery_charge: number; status: string; payment_method: string; created_at: string; address: string }>
   if (orders.length === 0) return NextResponse.json([])
 
   const orderIds = orders.map((order) => order.id).join(',')
@@ -57,6 +59,7 @@ export async function POST(request: Request) {
     const phone = body.phone?.trim()
     const address = body.address?.trim()
     const paymentMethod = body.paymentMethod
+    const discountCode = body.discountCode?.trim().toUpperCase()
     const items = body.items || []
 
     if (!customerName || !email || !phone || !address || !paymentMethod || items.length === 0) {
@@ -73,12 +76,23 @@ export async function POST(request: Request) {
       if (!product || !Number.isInteger(quantity) || quantity < 1) throw new Error('One or more cart items are no longer available.')
       return { product_id: product.id, name: product.name, price: product.price, quantity, total: product.price * quantity }
     })
-    const total = orderItems.reduce((sum, item) => sum + item.total, 0)
+    const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0)
+    let discount = ORDER_DISCOUNT
+    let discountUsageCount = 0
+    if (discountCode) {
+      const discountResponse = await fetch(`${supabaseUrl}/rest/v1/discount_codes?select=code,discount_type,value,expires_at,usage_limit,usage_count&code=eq.${encodeURIComponent(discountCode)}&is_active=eq.true&limit=1`, { headers: { apikey: serviceRoleKey!, Authorization: `Bearer ${serviceRoleKey!}` }, cache: 'no-store' })
+      const [discountRow] = await discountResponse.json() as Array<{ code: string; discount_type: 'percentage' | 'fixed'; value: number; expires_at?: string; usage_limit?: number | null; usage_count: number }>
+      if (!discountRow || (discountRow.expires_at && new Date(discountRow.expires_at) <= new Date()) || (discountRow.usage_limit !== null && discountRow.usage_limit !== undefined && discountRow.usage_count >= discountRow.usage_limit)) throw new Error('That discount code is invalid or has expired.')
+      discountUsageCount = discountRow.usage_count
+      discount = discountRow.discount_type === 'percentage' ? subtotal * Number(discountRow.value) / 100 : Number(discountRow.value)
+      discount = Math.min(subtotal, Math.max(0, discount))
+    }
+    const total = calculateOrderTotal(subtotal, discount)
     const headers = { apikey: serviceRoleKey!, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' }
     const orderResponse = await fetch(`${supabaseUrl}/rest/v1/orders`, {
       method: 'POST',
       headers: { ...headers, Prefer: 'return=representation' },
-      body: JSON.stringify({ user_id: user.id, customer_name: customerName, email, phone, address, payment_method: paymentMethod, transaction_reference: body.transactionReference?.trim() || null, proof_url: body.proofUrl?.trim() || null, notes: body.notes?.trim() || null, total, status: 'pending' }),
+      body: JSON.stringify({ user_id: user.id, customer_name: customerName, email, phone, address, payment_method: paymentMethod, transaction_reference: body.transactionReference?.trim() || null, proof_url: body.proofUrl?.trim() || null, notes: body.notes?.trim() || null, subtotal, discount, discount_code: discountCode || null, delivery_charge: DELIVERY_CHARGE, total, status: 'pending' }),
     })
     if (orderResponse.status === 404) throw new Error('Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.')
     if (!orderResponse.ok) throw new Error('Unable to create order.')
@@ -89,6 +103,9 @@ export async function POST(request: Request) {
     })
     if (itemsResponse.status === 404) throw new Error('Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.')
     if (!itemsResponse.ok) throw new Error('Unable to save order items.')
+    if (discountCode) {
+      await fetch(`${supabaseUrl}/rest/v1/discount_codes?code=eq.${encodeURIComponent(discountCode)}`, { method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' }, body: JSON.stringify({ usage_count: discountUsageCount + 1 }) })
+    }
     return NextResponse.json({ orderNumber: order.order_number || order.id }, { status: 201 })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to create order.'

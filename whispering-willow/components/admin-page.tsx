@@ -12,6 +12,7 @@ const emptyForm = {
 }
 
 type ProductForm = typeof emptyForm
+type DiscountCode = { id: number; code: string; discount_type: 'percentage' | 'fixed'; value: number; is_active: boolean; expires_at?: string; usage_limit?: number | null; usage_count: number }
 const adminSessionKey = 'whispering-willow-admin-authenticated'
 const adminPasswordSessionKey = 'whispering-willow-admin-password'
 
@@ -25,6 +26,8 @@ export function AdminPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([])
+  const [discountForm, setDiscountForm] = useState({ code: '', discountType: 'percentage', value: '', expiresAt: '', usageLimit: '' })
 
   useEffect(() => {
     const sessionPassword = sessionStorage.getItem(adminPasswordSessionKey)
@@ -43,10 +46,12 @@ export function AdminPage() {
       return
     }
 
-    fetch('/api/products')
+    Promise.all([fetch('/api/products'), fetch('/api/admin/discounts', { headers: { 'x-admin-password': password } })])
       .then(async (productsResponse) => {
-        if (!productsResponse.ok) throw new Error('Unable to load products.')
-        return productsResponse.json() as Promise<Product[]>
+        const [productResponse, discountResponse] = productsResponse
+        if (!productResponse.ok) throw new Error('Unable to load products.')
+        if (discountResponse.ok) setDiscountCodes(await discountResponse.json() as DiscountCode[])
+        return productResponse.json() as Promise<Product[]>
       })
       .then(setProducts)
       .catch(() => setMessage('Unable to load products. Check your database configuration.'))
@@ -195,6 +200,27 @@ export function AdminPage() {
     setMessage('Product removed.')
   }
 
+  const createDiscountCode = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const response = await fetch('/api/admin/discounts', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-password': password }, body: JSON.stringify({ code: discountForm.code, discountType: discountForm.discountType, value: Number(discountForm.value), expiresAt: discountForm.expiresAt || undefined, usageLimit: discountForm.usageLimit ? Number(discountForm.usageLimit) : null }) })
+    const result = await response.json() as DiscountCode | { error?: string }
+    if (!response.ok) { setMessage((result as { error?: string }).error || 'Unable to create discount code.'); return }
+    setDiscountCodes((current) => [result as DiscountCode, ...current])
+    setDiscountForm({ code: '', discountType: 'percentage', value: '', expiresAt: '', usageLimit: '' })
+    setMessage('Discount code created.')
+  }
+
+  const toggleDiscountCode = async (discount: DiscountCode) => {
+    const response = await fetch('/api/admin/discounts', { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-admin-password': password }, body: JSON.stringify({ id: discount.id, isActive: !discount.is_active }) })
+    if (response.ok) setDiscountCodes((current) => current.map((item) => item.id === discount.id ? { ...item, is_active: !item.is_active } : item))
+  }
+
+  const deleteDiscountCode = async (discount: DiscountCode) => {
+    if (!window.confirm(`Delete ${discount.code}?`)) return
+    const response = await fetch(`/api/admin/discounts?id=${discount.id}`, { method: 'DELETE', headers: { 'x-admin-password': password } })
+    if (response.ok) setDiscountCodes((current) => current.filter((item) => item.id !== discount.id))
+  }
+
   if (!isAuthorized) {
     return null
   }
@@ -266,6 +292,19 @@ export function AdminPage() {
                   </div>
                 </article>
               ))}
+            </div>
+
+            <div className="mt-12 border-t border-border/70 pt-8">
+              <div className="mb-4 flex items-baseline justify-between"><h2 className="font-serif text-3xl text-foreground">Discount codes</h2><span className="text-sm text-muted-foreground">{discountCodes.length} codes</span></div>
+              <form onSubmit={createDiscountCode} className="grid gap-3 rounded-2xl border border-border/70 bg-background p-4 md:grid-cols-5">
+                <input required value={discountForm.code} onChange={(event) => setDiscountForm((current) => ({ ...current, code: event.target.value.toUpperCase() }))} placeholder="Code e.g. WILLOW10" className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none" />
+                <select value={discountForm.discountType} onChange={(event) => setDiscountForm((current) => ({ ...current, discountType: event.target.value }))} className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none"><option value="percentage">Percentage</option><option value="fixed">Fixed PKR</option></select>
+                <input required type="number" min="0.01" value={discountForm.value} onChange={(event) => setDiscountForm((current) => ({ ...current, value: event.target.value }))} placeholder="Value" className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none" />
+                <input type="date" value={discountForm.expiresAt} onChange={(event) => setDiscountForm((current) => ({ ...current, expiresAt: event.target.value }))} className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none" />
+                <button type="submit" className="rounded-xl bg-primary px-3 py-2 text-sm text-primary-foreground">Create code</button>
+                <input type="number" min="1" value={discountForm.usageLimit} onChange={(event) => setDiscountForm((current) => ({ ...current, usageLimit: event.target.value }))} placeholder="Usage limit (optional)" className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none md:col-span-2" />
+              </form>
+              <div className="mt-4 space-y-2">{discountCodes.map((discount) => <div key={discount.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-background px-4 py-3"><div><strong className="text-sm tracking-wide text-foreground">{discount.code}</strong><span className="ml-3 text-sm text-muted-foreground">{discount.discount_type === 'percentage' ? `${discount.value}% off` : `${discount.value} PKR off`} · {discount.usage_count}{discount.usage_limit ? `/${discount.usage_limit}` : ''} uses</span></div><div className="flex gap-2"><button type="button" onClick={() => void toggleDiscountCode(discount)} className="rounded-full border border-border px-3 py-1 text-xs">{discount.is_active ? 'Active' : 'Inactive'}</button><button type="button" onClick={() => void deleteDiscountCode(discount)} className="rounded-full border border-destructive/50 px-3 py-1 text-xs text-destructive">Delete</button></div></div>)}</div>
             </div>
 
           </section>
