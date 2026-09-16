@@ -18,7 +18,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       <aside
         aria-label="Shopping cart"
         aria-hidden={!isOpen}
-        className={`fixed right-0 top-0 z-[70] flex h-screen w-[min(92vw,420px)] flex-col border-l border-border/70 bg-background shadow-2xl transition-transform duration-300 ease-out md:w-1/4 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed right-0 top-0 z-[70] flex h-screen w-[min(92vw,420px)] flex-col border-l border-border/70 bg-background shadow-2xl transition-[transform,visibility] duration-300 ease-out md:w-1/4 ${isOpen ? 'visible translate-x-0 [transition-delay:0s,0s]' : 'pointer-events-none invisible translate-x-full [transition-delay:0s,300ms]'}`}
       >
         <button type="button" onClick={onClose} aria-label="Close cart" title="Close cart" className="absolute left-0 top-1/2 z-10 flex h-12 w-9 -translate-y-1/2 items-center justify-center rounded-r-md bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/85"><ArrowRight className="h-5 w-5" /></button>
         <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">

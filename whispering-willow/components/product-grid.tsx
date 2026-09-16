@@ -108,11 +108,11 @@ export function ProductGrid({ products }: ProductGridProps) {
             <p className="mt-2 text-sm text-muted-foreground">Try a different search or clear your filters.</p>
           </div>
         ) : (
-          <div className="grid justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-3 justify-items-center gap-2 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((p) => (
                     <article
                       key={p.id ?? p.name}
-                      className="group flex w-full max-w-[280px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card text-left shadow-sm"
+                      className="group flex w-full max-w-[280px] min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card text-left shadow-sm"
                     >
                       <div className="relative aspect-square w-full overflow-hidden">
                         <img
@@ -121,19 +121,19 @@ export function ProductGrid({ products }: ProductGridProps) {
                           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         />
                       </div>
-                      <div className="flex flex-1 flex-col p-5">
+                      <div className="flex flex-1 flex-col p-3 sm:p-5">
                         <span className="text-xs uppercase tracking-[0.2em] text-primary">
                           {p.category}
                         </span>
-                        <h3 className="mt-2 font-serif text-xl leading-tight text-foreground">
+                        <h3 className="mt-2 font-serif text-base leading-tight text-foreground sm:text-xl">
                           {p.name}
                         </h3>
-                        <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                        <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                           {p.description}
                         </p>
-                        <div className="mt-5 flex items-center justify-between gap-3">
-                          <span className="font-serif text-lg text-foreground">{formatPrice(p.price)}</span>
-                          <button type="button" onClick={() => handleAddToCart(p)} className={`relative overflow-hidden rounded-full px-4 py-2 text-xs tracking-wide transition-colors ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
+                        <div className="mt-5 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
+                          <span className="font-serif text-sm text-foreground sm:text-lg">{formatPrice(p.price)}</span>
+                          <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-2 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-4 sm:text-xs ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
                             <span className={addedProductName === p.name ? 'opacity-0' : 'opacity-100'}>Add to cart</span>
                             {addedProductName === p.name ? <span className="absolute inset-0 flex items-center justify-center bg-white text-foreground">Added</span> : null}
                           </button>

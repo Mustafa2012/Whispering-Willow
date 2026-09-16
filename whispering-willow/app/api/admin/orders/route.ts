@@ -9,7 +9,7 @@ function unauthorized(request: Request) {
 
 export async function GET(request: Request) {
   if (unauthorized(request) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-  const response = await fetch(`${supabaseUrl}/rest/v1/orders?select=*&order=created_at.desc`, { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` }, cache: 'no-store' })
+  const response = await fetch(`${supabaseUrl}/rest/v1/orders?select=*,order_items(*)&order=created_at.desc`, { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` }, cache: 'no-store' })
   if (!response.ok) return NextResponse.json({ error: 'Unable to load orders.' }, { status: 500 })
   return NextResponse.json(await response.json())
 }
