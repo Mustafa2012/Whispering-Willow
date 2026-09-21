@@ -53,8 +53,8 @@ export function ProductGrid({ products }: ProductGridProps) {
 
   return (
     <section id="shop" className="bg-secondary/30">
-      <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-        <div className="mb-12 flex flex-col items-center text-center">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-16">
+        <div className="mb-8 flex flex-col items-center text-center">
           <span className="text-xs uppercase tracking-[0.25em] text-primary">
             Choose quality, not clutter
           </span>
@@ -67,7 +67,7 @@ export function ProductGrid({ products }: ProductGridProps) {
           </p>
         </div>
 
-        <div className="mb-10 rounded-2xl border border-border/70 bg-background p-4 shadow-sm md:p-5">
+        <div className="mb-8 rounded-2xl border border-border/70 bg-background p-3 shadow-sm md:p-4">
           <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px_180px_180px]">
             <label className="relative block">
               <span className="sr-only">Search products</span>
@@ -108,32 +108,32 @@ export function ProductGrid({ products }: ProductGridProps) {
             <p className="mt-2 text-sm text-muted-foreground">Try a different search or clear your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 justify-items-center gap-2 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 justify-items-center gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
             {filteredProducts.map((p) => (
                     <article
                       key={p.id ?? p.name}
-                      className="group flex w-full max-w-[280px] min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card text-left shadow-sm"
+                      className="group flex w-full min-w-0 flex-col overflow-hidden rounded-xl border border-border/70 bg-card text-left shadow-sm"
                     >
-                      <div className="relative aspect-square w-full overflow-hidden">
+                      <div className="relative aspect-[4/3] w-full overflow-hidden">
                         <img
                           src={p.image || '/placeholder.svg'}
                           alt={p.name}
                           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         />
                       </div>
-                      <div className="flex flex-1 flex-col p-3 sm:p-5">
-                        <span className="text-xs uppercase tracking-[0.2em] text-primary">
+                      <div className="flex flex-1 flex-col p-3 sm:p-4">
+                        <span className="truncate text-[10px] uppercase tracking-[0.16em] text-primary sm:text-xs">
                           {p.category}
                         </span>
-                        <h3 className="mt-2 font-serif text-base leading-tight text-foreground sm:text-xl">
+                        <h3 className="mt-1.5 line-clamp-2 font-serif text-base leading-tight text-foreground sm:text-lg">
                           {p.name}
                         </h3>
-                        <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                        <p className="mt-1.5 line-clamp-2 flex-1 text-[11px] leading-snug text-muted-foreground sm:text-xs">
                           {p.description}
                         </p>
-                        <div className="mt-5 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
-                          <span className="font-serif text-sm text-foreground sm:text-lg">{formatPrice(p.price)}</span>
-                          <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-2 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-4 sm:text-xs ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
+                        <div className="mt-3 flex flex-col items-start justify-between gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                          <span className="font-serif text-sm text-foreground sm:text-base">{formatPrice(p.price)}</span>
+                          <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-1.5 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
                             <span className={addedProductName === p.name ? 'opacity-0' : 'opacity-100'}>Add to cart</span>
                             {addedProductName === p.name ? <span className="absolute inset-0 flex items-center justify-center bg-white text-foreground">Added</span> : null}
                           </button>

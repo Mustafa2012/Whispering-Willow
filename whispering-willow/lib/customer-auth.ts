@@ -9,23 +9,13 @@ export function isCustomerAuthConfigured() {
   return Boolean(supabaseUrl && supabaseAnonKey)
 }
 
-export type CustomerUser = {
-  id: string
-  email?: string
-  user_metadata?: {
-    avatar_url?: string
-    picture?: string
-  }
-}
-
-export async function getCustomerSession(request?: Request) {
+export async function getCustomerSession() {
   const cookieStore = await cookies()
   const customToken = cookieStore.get(customerSessionCookie)?.value
   const projectRef = supabaseUrl ? new URL(supabaseUrl).hostname.split('.')[0] : null
   const supabaseAuthToken = projectRef ? cookieStore.get(`sb-${projectRef}-auth-token`)?.value : null
-  const authorizationToken = request?.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || null
 
-  let token = authorizationToken || customToken || null
+  let token = customToken || null
   if (!token && supabaseAuthToken) {
     try {
       const parsed = JSON.parse(supabaseAuthToken)
@@ -42,7 +32,7 @@ export async function getCustomerSession(request?: Request) {
   if (!token || !supabaseUrl || !supabaseAnonKey) return null
   const response = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${token}` }, cache: 'no-store' })
   if (!response.ok) return null
-  return await response.json() as CustomerUser
+  return await response.json() as { id: string; email?: string }
 }
 
 export function authHeaders() {
