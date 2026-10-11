@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { getCustomerSession } from '@/lib/customer-auth'
+import { hasCustomerPlacedOrder } from '@/lib/customer-orders'
 
 const allowedTypes: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -15,6 +16,15 @@ export async function POST(request: Request) {
   const isAdmin = Boolean(adminPassword) && request.headers.get('x-admin-password') === adminPassword
   const customer = isAdmin ? null : await getCustomerSession(request)
   if (!isAdmin && !customer) return NextResponse.json({ error: 'Sign in to upload review images.' }, { status: 401 })
+  if (!isAdmin) {
+    try {
+      if (!(await hasCustomerPlacedOrder(customer?.email))) {
+        return NextResponse.json({ error: 'Place an order before submitting a review.' }, { status: 403 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'Unable to verify your order history.' }, { status: 503 })
+    }
+  }
 
   const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, '').replace(/\/rest\/v1$/, '')
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY

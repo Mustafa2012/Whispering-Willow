@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCustomerSession } from '@/lib/customer-auth'
 import { getPublishedReviews } from '@/lib/reviews-server'
+import { hasCustomerPlacedOrder } from '@/lib/customer-orders'
 
 export async function GET() {
   try {
@@ -15,6 +16,9 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Sign in to submit a review.' }, { status: 401 })
 
   try {
+    if (!(await hasCustomerPlacedOrder(user.email))) {
+      return NextResponse.json({ error: 'Place an order before submitting a review.' }, { status: 403 })
+    }
     const body = await request.json() as { reviewerName?: unknown; rating?: unknown; reviewText?: unknown; imagePaths?: unknown }
     const reviewerName = typeof body.reviewerName === 'string' ? body.reviewerName.trim() : ''
     const reviewText = typeof body.reviewText === 'string' ? body.reviewText.trim() : ''

@@ -12,5 +12,5 @@ For customer email OTP login, copy the Supabase `anon` public key from **Project
 
 Customers can place cash-on-delivery orders or upload bank-transfer proof during checkout. Orders are visible to administrators at `/admin/orders`, where their status can be updated. Set product sizes in the inventory editor as comma-separated values; products without sizes do not show a size selector.
 
-Administrators manage store testimonials at `/admin/reviews`, where they can add drafts with up to three JPEG, PNG, WebP, or GIF images (5 MB each), then publish or remove reviews. Signed-in customers can submit a display name, rating, review, and up to three images from the storefront. Customer submissions remain private until an administrator publishes them. Review images are stored in the private `review-images` bucket and are served using signed URLs.
+Administrators manage store testimonials at `/admin/reviews`, where they can add drafts with up to three JPEG, PNG, WebP, or GIF images (5 MB each), then publish or remove reviews. Customers with an order can submit a display name, rating, review, and up to three images from `/orders`; the homepage only displays published reviews. Customer submissions remain private until an administrator publishes them. Review images are stored in the private `review-images` bucket and are served using signed URLs.
 

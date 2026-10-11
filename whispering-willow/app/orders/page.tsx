@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
 import { getCustomerAuthHeaders } from '@/lib/customer-browser'
 import { DELIVERY_CHARGE, ORDER_DISCOUNT } from '@/lib/order-pricing'
+import { CustomerReviewForm } from '@/components/customer-review-form'
 
 type CustomerOrder = {
   order_number: string
@@ -177,6 +178,7 @@ export default function OrdersPage() {
             </article>
           ))}
         </div>
+        {orders.length > 0 && !isLoading ? <CustomerReviewForm /> : null}
       </div>
     </main>
   )
