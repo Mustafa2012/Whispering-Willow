@@ -50,6 +50,10 @@ export function AdminOrdersPage() {
   const [filter, setFilter] = useState<Filter>('all')
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [isClearFormOpen, setIsClearFormOpen] = useState(false)
+  const [clearPassword, setClearPassword] = useState('')
+  const [clearMessage, setClearMessage] = useState('')
+  const [isClearing, setIsClearing] = useState(false)
 
   useEffect(() => {
     const sessionPassword = sessionStorage.getItem(adminPasswordSessionKey)
@@ -96,6 +100,29 @@ export function AdminOrdersPage() {
       return
     }
     setOrders((current) => current.map((item) => item.id === order.id ? { ...item, status } : item))
+  }
+
+  const clearReviewsAndOrders = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsClearing(true)
+    setClearMessage('')
+    try {
+      const response = await fetch('/api/admin/clear-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ confirmationPassword: clearPassword }),
+      })
+      const result = await response.json() as { error?: string; warning?: string }
+      if (!response.ok) throw new Error(result.error || 'Unable to clear reviews and orders.')
+      setOrders([])
+      setClearMessage(result.warning || 'All reviews and orders have been cleared.')
+      setClearPassword('')
+      setIsClearFormOpen(false)
+    } catch (error) {
+      setClearMessage(error instanceof Error ? error.message : 'Unable to clear reviews and orders.')
+    } finally {
+      setIsClearing(false)
+    }
   }
 
   if (!isAuthorized) return null
@@ -159,6 +186,28 @@ export function AdminOrdersPage() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="mt-12 border-t border-destructive/40 pt-8" aria-labelledby="clear-data-heading">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 id="clear-data-heading" className="font-serif text-2xl text-foreground">Clear reviews and orders</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Permanently deletes all reviews, orders, order items, and attached files.</p>
+            </div>
+            {!isClearFormOpen ? (
+              <button type="button" onClick={() => { setClearMessage(''); setIsClearFormOpen(true) }} className="border border-destructive px-4 py-2.5 text-sm text-destructive transition-colors hover:bg-destructive/10">Clear all data</button>
+            ) : null}
+          </div>
+          {isClearFormOpen ? (
+            <form onSubmit={clearReviewsAndOrders} className="mt-5 grid gap-3 border-t border-border/70 pt-5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end">
+              <label className="grid gap-2 text-sm text-foreground">Enter the clear-all password
+                <input required type="password" autoComplete="off" value={clearPassword} onChange={(event) => setClearPassword(event.target.value)} className="w-full border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-destructive" />
+              </label>
+              <button type="submit" disabled={isClearing} className="bg-destructive px-4 py-2.5 text-sm text-white disabled:opacity-60">{isClearing ? 'Clearing...' : 'Permanently clear'}</button>
+              <button type="button" onClick={() => { setIsClearFormOpen(false); setClearPassword('') }} disabled={isClearing} className="border border-border px-4 py-2.5 text-sm text-foreground">Cancel</button>
+            </form>
+          ) : null}
+          {clearMessage ? <p role="status" className="mt-4 text-sm text-destructive">{clearMessage}</p> : null}
         </section>
       </div>
     </main>
