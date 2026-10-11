@@ -9,6 +9,7 @@ const emptyForm = {
   price: '',
   description: '',
   image: '/placeholder.svg',
+  sizes: '',
 }
 
 type ProductForm = typeof emptyForm
@@ -46,9 +47,11 @@ export function AdminPage() {
       return
     }
 
-    Promise.all([fetch('/api/products'), fetch('/api/admin/discounts', { headers: { 'x-admin-password': password } })])
-      .then(async (productsResponse) => {
-        const [productResponse, discountResponse] = productsResponse
+    Promise.all([
+      fetch('/api/products'),
+      fetch('/api/admin/discounts', { headers: { 'x-admin-password': password } }),
+    ])
+      .then(async ([productResponse, discountResponse]) => {
         if (!productResponse.ok) throw new Error('Unable to load products.')
         if (discountResponse.ok) setDiscountCodes(await discountResponse.json() as DiscountCode[])
         return productResponse.json() as Promise<Product[]>
@@ -112,6 +115,7 @@ export function AdminPage() {
       price: String(product.price),
       description: product.description,
       image: product.image,
+      sizes: product.sizes?.join(', ') || '',
     })
     setMessage('')
   }
@@ -134,6 +138,7 @@ export function AdminPage() {
       price: Number(form.price) || 0,
       description: form.description.trim(),
       image: form.image.trim() || '/placeholder.svg',
+      sizes: Array.from(new Set(form.sizes.split(',').map((size) => size.trim()).filter(Boolean))),
     }
 
     if (!product.name || !product.category || !product.description) {
@@ -241,6 +246,7 @@ export function AdminPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <a href="/admin/orders" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Orders dashboard</a>
+            <a href="/admin/reviews" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Store reviews</a>
             <button type="button" onClick={startNewProduct} className="rounded-full bg-foreground px-5 py-3 text-sm text-background transition-opacity hover:opacity-85">Add new product</button>
           </div>
         </div>
@@ -325,6 +331,7 @@ export function AdminPage() {
               <input name="name" value={form.name} onChange={handleFormChange} placeholder="Product name" required className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
               <input name="category" value={form.category} onChange={handleFormChange} placeholder="Category" required className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
               <input name="price" value={form.price} onChange={handleFormChange} placeholder="Price" className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
+              <input name="sizes" value={form.sizes} onChange={handleFormChange} placeholder="Sizes (comma-separated, optional)" className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
               <textarea name="description" value={form.description} onChange={handleFormChange} placeholder="Short description" rows={5} required className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
               <div
                 onDragOver={(event) => event.preventDefault()}

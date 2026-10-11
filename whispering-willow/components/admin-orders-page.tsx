@@ -14,7 +14,7 @@ type AdminOrder = {
   proof_url?: string
   notes?: string
   admin_notes?: string
-  order_items?: Array<{ id: number; name: string; price: number; quantity: number; total: number }>
+  order_items?: Array<{ id: number; name: string; price: number; quantity: number; total: number; selected_size?: string | null }>
   total: number
   status: string
   created_at?: string
@@ -110,7 +110,10 @@ export function AdminOrdersPage() {
             <h1 className="mt-2 font-serif text-5xl text-foreground md:text-6xl">Orders dashboard</h1>
             <p className="mt-3 max-w-xl text-muted-foreground">Track every order, payment detail, and fulfillment decision in one place.</p>
           </div>
-          <a href="/admin" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Inventory</a>
+          <div className="flex flex-wrap gap-3">
+            <a href="/admin" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Inventory</a>
+            <a href="/admin/reviews" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Store reviews</a>
+          </div>
         </div>
 
         {message ? <p className="mb-6 text-sm text-primary">{message}</p> : null}
@@ -143,7 +146,7 @@ export function AdminOrdersPage() {
                     <p className="mt-1 text-sm text-muted-foreground">{order.email} · {order.phone}</p>
                     <p className="mt-3 text-sm text-foreground">{order.address}</p>
                     {order.created_at ? <p className="mt-2 text-xs text-muted-foreground">Placed {new Date(order.created_at).toLocaleString()}</p> : null}
-                    {order.order_items?.length ? <div className="mt-4 space-y-1 border-t border-border/60 pt-3">{order.order_items.map((item) => <p key={item.id} className="text-sm text-muted-foreground">{item.quantity} × {item.name} <span className="text-foreground">(PKR {Number(item.total).toLocaleString('en-PK')})</span></p>)}</div> : null}
+                    {order.order_items?.length ? <div className="mt-4 space-y-1 border-t border-border/60 pt-3">{order.order_items.map((item) => <p key={item.id} className="text-sm text-muted-foreground">{item.quantity} × {item.name}{item.selected_size ? ` (Size ${item.selected_size})` : ''} <span className="text-foreground">(PKR {Number(item.total).toLocaleString('en-PK')})</span></p>)}</div> : null}
                     {order.notes ? <p className="mt-3 text-sm text-muted-foreground">Customer note: {order.notes}</p> : null}
                   </div>
                   <div className="flex min-w-56 flex-col items-start gap-3 lg:items-end">

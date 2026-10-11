@@ -2,7 +2,8 @@
 
 import { Search, ShoppingBag, SlidersHorizontal, X } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
-import { formatPrice, type Product } from '@/lib/products'
+import Link from 'next/link'
+import { formatPrice, slugifyProductName, type Product } from '@/lib/products'
 import { useCart } from '@/components/cart-provider'
 
 type ProductGridProps = {
@@ -13,36 +14,34 @@ export function ProductGrid({ products }: ProductGridProps) {
   const { addItem } = useCart()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
-  const [maxPrice, setMaxPrice] = useState('')
-  const [sort, setSort] = useState('featured')
+  const [sort, setSort] = useState('newest')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [addedProductName, setAddedProductName] = useState<string | null>(null)
   const addedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const categories = Array.from(new Set(products.map((product) => product.category)))
-  const highestPrice = Math.max(...products.map((product) => product.price), 0)
+  const categoryOrder = ['Bangles', 'Bracelets', 'Earrings', 'Necklaces', 'Rings']
+  const categories = categoryOrder.filter((item) => products.some((product) => product.category === item))
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
     const filtered = products.filter((product) => {
       const matchesQuery = !normalizedQuery || `${product.name} ${product.description}`.toLowerCase().includes(normalizedQuery)
       const matchesCategory = category === 'All' || product.category === category
-      const matchesPrice = !maxPrice || product.price <= Number(maxPrice)
-      return product.isActive !== false && matchesQuery && matchesCategory && matchesPrice
+      return product.isActive !== false && matchesQuery && matchesCategory
     })
 
     return [...filtered].sort((left, right) => {
+      if (sort === 'newest') {
+        if (left.created_at && right.created_at) return Date.parse(right.created_at) - Date.parse(left.created_at)
+        if (left.created_at) return -1
+        if (right.created_at) return 1
+        return products.indexOf(left) - products.indexOf(right)
+      }
       if (sort === 'price-low') return left.price - right.price
       if (sort === 'price-high') return right.price - left.price
       if (sort === 'name') return left.name.localeCompare(right.name)
-      return 0
+      return products.indexOf(left) - products.indexOf(right)
     })
-  }, [category, maxPrice, products, query, sort])
-  const hasFilters = query || category !== 'All' || maxPrice || sort !== 'featured'
-
-  const clearFilters = () => {
-    setQuery('')
-    setCategory('All')
-    setMaxPrice('')
-    setSort('featured')
-  }
+  }, [category, products, query, sort])
 
   const handleAddToCart = (product: Product) => {
     addItem(product)
@@ -67,82 +66,99 @@ export function ProductGrid({ products }: ProductGridProps) {
           </p>
         </div>
 
-        <div className="mb-8 rounded-2xl border border-border/70 bg-background p-3 shadow-sm md:p-4">
-          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px_180px_180px]">
-            <label className="relative block">
-              <span className="sr-only">Search products</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search jewelry" className="w-full rounded-xl border border-border bg-card py-3 pl-10 pr-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring" />
-            </label>
-            <label>
-              <span className="sr-only">Category</span>
-              <select value={category} onChange={(event) => setCategory(event.target.value)} className="w-full rounded-xl border border-border bg-card px-3 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring">
-                <option value="All">All categories</option>
-                {categories.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
-            </label>
-            <label>
-              <span className="sr-only">Maximum price</span>
-              <input type="number" min="0" max={highestPrice} value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder="Max price (PKR)" className="w-full rounded-xl border border-border bg-card px-3 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring" />
-            </label>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-y border-border/70 py-3">
+          <div className="flex min-w-0 items-center gap-4">
+            <button type="button" onClick={() => setFiltersOpen((open) => !open)} aria-expanded={filtersOpen} className="inline-flex items-center gap-2 text-sm text-foreground hover:text-primary">
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
+            </button>
+            <span className="text-sm text-muted-foreground">{filteredProducts.length} products</span>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            {searchOpen ? (
+              <label className="relative block w-44 sm:w-56">
+                <span className="sr-only">Search products</span>
+                <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search jewelry" className="w-full border-b border-border bg-transparent py-2 pl-2 pr-8 text-sm text-foreground outline-none focus:border-primary" />
+                <button type="button" onClick={() => { setQuery(''); setSearchOpen(false) }} aria-label="Close search" className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+              </label>
+            ) : (
+              <button type="button" onClick={() => setSearchOpen(true)} aria-label="Search products" className="p-2 text-foreground hover:text-primary"><Search className="h-4 w-4" /></button>
+            )}
             <label>
               <span className="sr-only">Sort products</span>
-              <select value={sort} onChange={(event) => setSort(event.target.value)} className="w-full rounded-xl border border-border bg-card px-3 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring">
-                <option value="featured">Featured</option>
-                <option value="price-low">Price: low to high</option>
-                <option value="price-high">Price: high to low</option>
-                <option value="name">Name: A to Z</option>
+              <select value={sort} onChange={(event) => setSort(event.target.value)} className="max-w-40 border-0 bg-transparent py-2 pl-2 pr-7 text-sm text-foreground outline-none focus:ring-0">
+                <option value="newest">Newest</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name">Name</option>
               </select>
             </label>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-4 w-4" />{filteredProducts.length} products</span>
-            {hasFilters ? <button type="button" onClick={clearFilters} className="inline-flex items-center gap-1 text-foreground hover:text-primary"><X className="h-4 w-4" />Clear filters</button> : null}
           </div>
         </div>
 
-        {filteredProducts.length === 0 ? (
+        <div className={`grid items-start gap-6 ${filtersOpen ? 'lg:grid-cols-[190px_minmax(0,1fr)]' : ''}`}>
+          {filtersOpen ? (
+            <aside className="border-b border-border/70 pb-4 lg:sticky lg:top-6 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
+              <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-foreground">Category</h3>
+              <div className="flex flex-wrap gap-x-4 gap-y-2 lg:flex-col lg:gap-1">
+                {['All', ...categories].map((item) => (
+                  <button key={item} type="button" onClick={() => setCategory(item)} aria-pressed={category === item} className={`py-1 text-left text-sm transition-colors ${category === item ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </aside>
+          ) : null}
+
+          <div className="min-w-0">
+            {filteredProducts.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background px-6 py-16 text-center">
             <ShoppingBag className="mx-auto h-8 w-8 text-primary" />
             <h3 className="mt-4 font-serif text-2xl text-foreground">No pieces found</h3>
             <p className="mt-2 text-sm text-muted-foreground">Try a different search or clear your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 justify-items-center gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+          <div className="grid grid-cols-2 justify-items-center gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
             {filteredProducts.map((p) => (
                     <article
                       key={p.id ?? p.name}
                       className="group flex w-full min-w-0 flex-col overflow-hidden rounded-xl border border-border/70 bg-card text-left shadow-sm"
                     >
-                      <div className="relative aspect-[4/3] w-full overflow-hidden">
+                      <Link href={`/products/${slugifyProductName(p.name)}`} aria-label={`View ${p.name}`} className="relative aspect-[4/3] w-full overflow-hidden">
                         <img
                           src={p.image || '/placeholder.svg'}
                           alt={p.name}
                           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         />
-                      </div>
+                      </Link>
                       <div className="flex flex-1 flex-col p-3 sm:p-4">
                         <span className="truncate text-[10px] uppercase tracking-[0.16em] text-primary sm:text-xs">
                           {p.category}
                         </span>
                         <h3 className="mt-1.5 line-clamp-2 font-serif text-base leading-tight text-foreground sm:text-lg">
-                          {p.name}
+                          <Link href={`/products/${slugifyProductName(p.name)}`} className="hover:text-primary">{p.name}</Link>
                         </h3>
                         <p className="mt-1.5 line-clamp-2 flex-1 text-[11px] leading-snug text-muted-foreground sm:text-xs">
                           {p.description}
                         </p>
                         <div className="mt-3 flex flex-col items-start justify-between gap-1.5 sm:flex-row sm:items-center sm:gap-2">
                           <span className="font-serif text-sm text-foreground sm:text-base">{formatPrice(p.price)}</span>
-                          <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-1.5 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
-                            <span className={addedProductName === p.name ? 'opacity-0' : 'opacity-100'}>Add to cart</span>
-                            {addedProductName === p.name ? <span className="absolute inset-0 flex items-center justify-center bg-white text-foreground">Added</span> : null}
-                          </button>
+                          {p.sizes?.length ? (
+                            <Link href={`/products/${slugifyProductName(p.name)}`} className="w-full rounded-full bg-primary px-2 py-1.5 text-center text-[10px] tracking-wide text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto sm:px-3 sm:text-xs">Choose size</Link>
+                          ) : (
+                            <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-1.5 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
+                              <span className={addedProductName === p.name ? 'opacity-0' : 'opacity-100'}>Add to cart</span>
+                              {addedProductName === p.name ? <span className="absolute inset-0 flex items-center justify-center bg-white text-foreground">Added</span> : null}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </article>
             ))}
           </div>
         )}
+          </div>
+        </div>
       </div>
     </section>
   )

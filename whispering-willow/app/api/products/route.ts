@@ -8,6 +8,18 @@ import {
 } from '@/lib/products-server'
 import type { Product } from '@/lib/products'
 
+function normalizeSizes(value: unknown) {
+  if (!Array.isArray(value)) return []
+  return Array.from(new Set(value
+    .filter((size): size is string => typeof size === 'string')
+    .map((size) => size.trim())
+    .filter(Boolean)))
+}
+
+function validSizes(sizes: string[]) {
+  return sizes.length <= 20 && sizes.every((size) => size.length <= 30)
+}
+
 export async function GET() {
   try {
     return NextResponse.json(await getProducts())
@@ -31,10 +43,11 @@ export async function POST(request: Request) {
     const name = product.name?.trim()
     const category = product.category?.trim()
     const description = product.description?.trim()
+    const sizes = normalizeSizes(product.sizes)
 
-    if (!name || !category || !description) {
+    if (!name || !category || !description || !validSizes(sizes)) {
       return NextResponse.json(
-        { error: 'Name, category, and description are required.' },
+        { error: 'Enter a name, category, description, and up to 20 valid size options.' },
         { status: 400 },
       )
     }
@@ -45,6 +58,7 @@ export async function POST(request: Request) {
       price: typeof product.price === 'number' && Number.isFinite(product.price) ? product.price : 0,
       description,
       image: product.image?.trim() || '/placeholder.svg',
+      sizes,
     })
 
     return NextResponse.json({ success: true }, { status: 201 })
@@ -91,10 +105,11 @@ export async function PUT(request: Request) {
     const name = product.name?.trim()
     const category = product.category?.trim()
     const description = product.description?.trim()
+    const sizes = normalizeSizes(product.sizes)
 
-    if (typeof id !== 'number' || !Number.isInteger(id) || !name || !category || !description) {
+    if (typeof id !== 'number' || !Number.isInteger(id) || !name || !category || !description || !validSizes(sizes)) {
       return NextResponse.json(
-        { error: 'Product ID, name, category, and description are required.' },
+        { error: 'Product ID, name, category, description, and up to 20 valid size options are required.' },
         { status: 400 },
       )
     }
@@ -105,6 +120,7 @@ export async function PUT(request: Request) {
       price: typeof product.price === 'number' && Number.isFinite(product.price) ? product.price : 0,
       description,
       image: product.image?.trim() || '/placeholder.svg',
+      sizes,
     })
 
     return NextResponse.json({ success: true })

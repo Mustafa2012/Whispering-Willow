@@ -16,7 +16,7 @@ type CustomerOrder = {
   payment_method: string
   created_at: string
   address: string
-  items: Array<{ name: string; price: number; quantity: number; total: number }>
+  items: Array<{ name: string; price: number; quantity: number; total: number; selected_size?: string | null }>
 }
 
 const statusLabels: Record<string, string> = {
@@ -118,7 +118,7 @@ export default function OrdersPage() {
     order.items.forEach((item) => {
       context.font = '18px Arial, sans-serif'
       context.fillStyle = '#6f665d'
-      context.fillText(item.name, 60, itemY)
+      context.fillText(`${item.name}${item.selected_size ? ` (Size ${item.selected_size})` : ''}`, 60, itemY)
       context.fillText(formatPrice(item.price), 570, itemY)
       context.fillText(String(item.quantity), 740, itemY)
       context.fillStyle = '#332d27'
@@ -172,7 +172,7 @@ export default function OrdersPage() {
                 <button type="button" onClick={() => generateReceipt(order)} className="rounded-full border border-border px-4 py-2 text-xs text-foreground transition-colors hover:border-primary">Receipt</button>
                 <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground">{statusLabels[order.status] || order.status}</span>
               </div>
-              <div className="mt-4 space-y-2 text-sm text-muted-foreground">{order.items.map((item) => <div key={`${order.order_number}-${item.name}`} className="flex justify-between gap-4"><span>{item.name} × {item.quantity}</span><span>{formatPrice(item.total)}</span></div>)}</div>
+              <div className="mt-4 space-y-2 text-sm text-muted-foreground">{order.items.map((item) => <div key={`${order.order_number}-${item.name}-${item.selected_size || ''}`} className="flex justify-between gap-4"><span>{item.name}{item.selected_size ? ` (Size ${item.selected_size})` : ''} × {item.quantity}</span><span>{formatPrice(item.total)}</span></div>)}</div>
               <div className="mt-5 grid gap-3 border-t border-border/60 pt-4 text-sm sm:grid-cols-3"><div><span className="block text-xs uppercase tracking-wide text-muted-foreground">Total</span><strong className="mt-1 block text-foreground">{formatPrice(order.total)}</strong></div><div><span className="block text-xs uppercase tracking-wide text-muted-foreground">Payment</span><strong className="mt-1 block capitalize text-foreground">{order.payment_method.replace('_', ' ')}</strong></div><div><span className="block text-xs uppercase tracking-wide text-muted-foreground">Delivery</span><strong className="mt-1 block text-foreground">{order.address}</strong></div></div>
             </article>
           ))}

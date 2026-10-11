@@ -1,10 +1,12 @@
 export type Product = {
   id?: number
+  created_at?: string
   name: string
   category: string
   price: number
   description: string
   image: string
+  sizes?: string[]
   isActive?: boolean
 }
 
@@ -127,4 +129,8 @@ export const INSTAGRAM_URL = 'https://instagram.com/whisperingwillow.pk'
 
 export function formatPrice(price: number) {
   return `PKR ${price.toLocaleString('en-PK')}`
+}
+
+export function slugifyProductName(name: string) {
+  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }

@@ -21,10 +21,27 @@ export async function getProducts(): Promise<Product[]> {
     apikey: supabaseServiceRoleKey!,
     Authorization: `Bearer ${supabaseServiceRoleKey}`,
   }
-  const response = await fetch(`${supabaseUrl}/rest/v1/products?select=id,name,category,price,description,image&order=created_at.desc`, {
+  let response = await fetch(`${supabaseUrl}/rest/v1/products?select=id,name,category,price,description,image,sizes,is_active,created_at&order=created_at.desc`, {
     headers,
     cache: 'no-store',
   })
+
+  let hasSizesColumn = true
+  if (!response.ok && (response.status === 400 || response.status === 404)) {
+    const errorBody = await response.text()
+    const missingTable = /does not exist|relation .*products|not found/i.test(errorBody)
+    if (missingTable) {
+      return defaultProducts
+    }
+    if (!errorBody.toLowerCase().includes('sizes')) {
+      throw new Error(`Supabase products request failed with status ${response.status}.`)
+    }
+    hasSizesColumn = false
+    response = await fetch(`${supabaseUrl}/rest/v1/products?select=id,name,category,price,description,image,is_active,created_at&order=created_at.desc`, {
+      headers,
+      cache: 'no-store',
+    })
+  }
 
   if (response.status === 404) {
     return defaultProducts
@@ -34,7 +51,12 @@ export async function getProducts(): Promise<Product[]> {
     throw new Error(`Supabase products request failed with status ${response.status}.`)
   }
 
-  const storedProducts = (await response.json()) as Product[]
+  const storedRows = await response.json() as Array<Product & { is_active?: boolean }>
+  const storedProducts = storedRows.map(({ is_active, ...product }) => ({
+    ...product,
+    sizes: hasSizesColumn ? product.sizes || [] : [],
+    isActive: is_active ?? true,
+  }))
   const storedNames = new Set(storedProducts.map((product) => product.name))
   const missingProducts = defaultProducts.filter((product) => !storedNames.has(product.name))
 

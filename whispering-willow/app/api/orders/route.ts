@@ -13,7 +13,7 @@ type OrderRequest = {
   transactionReference?: string
   proofUrl?: string
   notes?: string
-  items?: Array<{ name?: string; quantity?: number }>
+  items?: Array<{ name?: string; quantity?: number; selectedSize?: string }>
 }
 
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, '').replace(/\/rest\/v1$/, '')
@@ -37,10 +37,10 @@ export async function GET(request: Request) {
   if (orders.length === 0) return NextResponse.json([])
 
   const orderIds = orders.map((order) => order.id).join(',')
-  const itemsResponse = await fetch(`${supabaseUrl}/rest/v1/order_items?select=order_id,name,price,quantity,total&order_id=in.(${orderIds})`, { headers, cache: 'no-store' })
+  const itemsResponse = await fetch(`${supabaseUrl}/rest/v1/order_items?select=order_id,name,price,quantity,total,selected_size&order_id=in.(${orderIds})`, { headers, cache: 'no-store' })
   if (itemsResponse.status === 404) return NextResponse.json({ error: 'Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.' }, { status: 503 })
   if (!itemsResponse.ok) return NextResponse.json({ error: 'Unable to load order items.' }, { status: 500 })
-  const items = await itemsResponse.json() as Array<{ order_id: number; name: string; price: number; quantity: number; total: number }>
+  const items = await itemsResponse.json() as Array<{ order_id: number; name: string; price: number; quantity: number; total: number; selected_size?: string | null }>
 
   return NextResponse.json(orders.map((order) => ({ ...order, items: items.filter((item) => item.order_id === order.id) })))
 }
@@ -74,7 +74,11 @@ export async function POST(request: Request) {
       const product = products.find((candidate) => candidate.name === item.name && candidate.isActive !== false)
       const quantity = Number(item.quantity)
       if (!product || !Number.isInteger(quantity) || quantity < 1) throw new Error('One or more cart items are no longer available.')
-      return { product_id: product.id, name: product.name, price: product.price, quantity, total: product.price * quantity }
+      const sizes = product.sizes || []
+      if ((sizes.length && (!item.selectedSize || !sizes.includes(item.selectedSize))) || (!sizes.length && item.selectedSize)) {
+        throw new Error(`Choose a valid size for ${product.name}.`)
+      }
+      return { product_id: product.id, name: product.name, price: product.price, quantity, selected_size: item.selectedSize || null, total: product.price * quantity }
     })
     const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0)
     let discount = ORDER_DISCOUNT

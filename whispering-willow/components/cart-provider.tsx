@@ -3,15 +3,19 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { Product } from '@/lib/products'
 
-export type CartItem = Product & { quantity: number }
+export type CartItem = Product & { quantity: number; selectedSize?: string }
+
+export function getCartItemKey(item: Pick<CartItem, 'id' | 'name' | 'selectedSize'>) {
+  return `${item.id ?? item.name}::${item.selectedSize || ''}`
+}
 
 type CartContextValue = {
   items: CartItem[]
   itemCount: number
   subtotal: number
-  addItem: (product: Product) => void
-  updateQuantity: (productName: string, quantity: number) => void
-  removeItem: (productName: string) => void
+  addItem: (product: Product, selectedSize?: string, quantity?: number) => void
+  updateQuantity: (itemKey: string, quantity: number) => void
+  removeItem: (itemKey: string) => void
   clearCart: () => void
 }
 
@@ -43,17 +47,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     items,
     itemCount: items.reduce((total, item) => total + item.quantity, 0),
     subtotal: items.reduce((total, item) => total + item.price * item.quantity, 0),
-    addItem: (product) => setItems((current) => {
-      const existing = current.find((item) => item.name === product.name)
+    addItem: (product, selectedSize, quantity = 1) => setItems((current) => {
+      const itemKey = getCartItemKey({ ...product, selectedSize })
+      const existing = current.find((item) => getCartItemKey(item) === itemKey)
       if (existing) {
-        return current.map((item) => item.name === product.name ? { ...item, quantity: item.quantity + 1 } : item)
+        return current.map((item) => getCartItemKey(item) === itemKey ? { ...item, quantity: item.quantity + quantity } : item)
       }
-      return [...current, { ...product, quantity: 1 }]
+      return [...current, { ...product, selectedSize, quantity }]
     }),
-    updateQuantity: (productName, quantity) => setItems((current) => quantity > 0
-      ? current.map((item) => item.name === productName ? { ...item, quantity } : item)
-      : current.filter((item) => item.name !== productName)),
-    removeItem: (productName) => setItems((current) => current.filter((item) => item.name !== productName)),
+    updateQuantity: (itemKey, quantity) => setItems((current) => quantity > 0
+      ? current.map((item) => getCartItemKey(item) === itemKey ? { ...item, quantity } : item)
+      : current.filter((item) => getCartItemKey(item) !== itemKey)),
+    removeItem: (itemKey) => setItems((current) => current.filter((item) => getCartItemKey(item) !== itemKey)),
     clearCart: () => setItems([]),
   }), [items])
 
