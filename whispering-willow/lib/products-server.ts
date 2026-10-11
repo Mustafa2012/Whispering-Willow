@@ -54,7 +54,7 @@ export async function getProducts(): Promise<Product[]> {
   const storedRows = await response.json() as Array<Product & { is_active?: boolean }>
   const storedProducts = storedRows.map(({ is_active, ...product }) => ({
     ...product,
-    sizes: hasSizesColumn ? product.sizes || [] : [],
+    sizes: hasSizesColumn && product.sizes?.length ? product.sizes : product.category === 'Rings' ? ['6', '7', '8'] : [],
     isActive: is_active ?? true,
   }))
   const storedNames = new Set(storedProducts.map((product) => product.name))

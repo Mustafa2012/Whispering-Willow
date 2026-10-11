@@ -43,7 +43,8 @@ export async function POST(request: Request) {
     const name = product.name?.trim()
     const category = product.category?.trim()
     const description = product.description?.trim()
-    const sizes = normalizeSizes(product.sizes)
+    const requestedSizes = normalizeSizes(product.sizes)
+    const sizes = category?.toLowerCase() === 'rings' && requestedSizes.length === 0 ? ['6', '7', '8'] : requestedSizes
 
     if (!name || !category || !description || !validSizes(sizes)) {
       return NextResponse.json(
@@ -105,7 +106,8 @@ export async function PUT(request: Request) {
     const name = product.name?.trim()
     const category = product.category?.trim()
     const description = product.description?.trim()
-    const sizes = normalizeSizes(product.sizes)
+    const requestedSizes = normalizeSizes(product.sizes)
+    const sizes = category?.toLowerCase() === 'rings' && requestedSizes.length === 0 ? ['6', '7', '8'] : requestedSizes
 
     if (typeof id !== 'number' || !Number.isInteger(id) || !name || !category || !description || !validSizes(sizes)) {
       return NextResponse.json(

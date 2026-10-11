@@ -49,6 +49,7 @@ export const products: Product[] = [
   {
     name: 'Opal Stone Ring',
     category: 'Rings',
+    sizes: ['6', '7', '8'],
     price: 10200,
     description: 'A soft opal-inspired ring with a delicate silhouette and shimmering iridescent glow.',
     image: '/images/Opal stone ring.jpg',
@@ -56,6 +57,7 @@ export const products: Product[] = [
   {
     name: 'Sun Halo Crystal Ring',
     category: 'Rings',
+    sizes: ['6', '7', '8'],
     price: 11000,
     description: 'Radiant crystal accents and warm metallic tones shaped into a celestial halo ring.',
     image: '/images/Sun Halo crystal ring.jpg',
@@ -63,6 +65,7 @@ export const products: Product[] = [
   {
     name: 'Sun Halo Lagoon Ring',
     category: 'Rings',
+    sizes: ['6', '7', '8'],
     price: 10800,
     description: 'A lagoon-inspired ring with layered shine and an airy, beachy elegance.',
     image: '/images/Sun Halo lagoon ring.jpg',
@@ -70,6 +73,7 @@ export const products: Product[] = [
   {
     name: 'North Star Ring',
     category: 'Rings',
+    sizes: ['6', '7', '8'],
     price: 9900,
     description: 'A minimalist celestial ring designed to feel both elevated and quietly bold.',
     image: '/images/North star ring.jpg',
@@ -77,6 +81,7 @@ export const products: Product[] = [
   {
     name: 'Pantheress Ring',
     category: 'Rings',
+    sizes: ['6', '7', '8'],
     price: 12400,
     description: 'Statement-making form with a sleek profile and rich jewel-toned energy.',
     image: '/images/Pantheress ring.jpg',
@@ -84,6 +89,7 @@ export const products: Product[] = [
   {
     name: 'Nautilus Ring',
     category: 'Rings',
+    sizes: ['6', '7', '8'],
     price: 11600,
     description: 'A sculptural shell-inspired ring with graceful curves and refined texture.',
     image: '/images/Nautilus ring.jpg',
@@ -91,6 +97,7 @@ export const products: Product[] = [
   {
     name: 'The Coral Reef Ring',
     category: 'Rings',
+    sizes: ['6', '7', '8'],
     price: 12800,
     description: 'A coral-inspired statement ring with layered sparkle and natural ocean character.',
     image: '/images/The coral reef ring.jpg',
@@ -98,6 +105,7 @@ export const products: Product[] = [
   {
     name: 'Star and Shell Ring',
     category: 'Rings',
+    sizes: ['6', '7', '8'],
     price: 10600,
     description: 'A beach-loved silhouette blending star detail and shell-inspired curves.',
     image: '/images/Star and shell ring.jpg',

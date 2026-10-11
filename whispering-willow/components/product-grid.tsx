@@ -1,7 +1,7 @@
  'use client'
 
 import { Search, ShoppingBag, SlidersHorizontal, X } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { formatPrice, slugifyProductName, type Product } from '@/lib/products'
 import { useCart } from '@/components/cart-provider'
@@ -21,6 +21,12 @@ export function ProductGrid({ products }: ProductGridProps) {
   const addedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const categoryOrder = ['Bangles', 'Bracelets', 'Earrings', 'Necklaces', 'Rings']
   const categories = categoryOrder.filter((item) => products.some((product) => product.category === item))
+
+  useEffect(() => {
+    const requestedCategory = new URLSearchParams(window.location.search).get('category')
+    if (requestedCategory) setCategory(requestedCategory)
+  }, [])
+
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
     const filtered = products.filter((product) => {

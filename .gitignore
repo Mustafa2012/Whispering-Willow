@@ -4,3 +4,5 @@ node_modules
 .env.local
 .env.*.local
 !.env.example
+/whispering-willow/next-env.d.ts
+/whispering-willow/tsconfig.tsbuildinfo

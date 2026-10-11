@@ -1,7 +1,7 @@
 'use client'
 
-import { Minus, Plus, ShoppingBag, X, ZoomIn } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Minus, Plus, ShoppingBag } from 'lucide-react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { formatPrice, type Product } from '@/lib/products'
 import { useCart } from '@/components/cart-provider'
@@ -10,18 +10,8 @@ export function ProductDetail({ product }: { product: Product }) {
   const { addItem } = useCart()
   const [selectedSize, setSelectedSize] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const [isZoomed, setIsZoomed] = useState(false)
   const [added, setAdded] = useState(false)
   const sizes = product.sizes || []
-
-  useEffect(() => {
-    if (!isZoomed) return
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsZoomed(false)
-    }
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [isZoomed])
 
   const handleAdd = () => {
     if (sizes.length && !selectedSize) return
@@ -44,11 +34,8 @@ export function ProductDetail({ product }: { product: Product }) {
         </nav>
 
         <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)] lg:gap-14">
-          <div className="relative aspect-square overflow-hidden bg-white">
-            <img src={product.image || '/placeholder.svg'} alt={product.name} className="h-full w-full object-contain p-4 sm:p-8" />
-            <button type="button" onClick={() => setIsZoomed(true)} className="absolute right-3 top-3 inline-flex items-center gap-2 rounded-full border border-primary/60 bg-background/90 px-3 py-2 text-xs text-primary hover:bg-background" aria-label={`Zoom image of ${product.name}`}>
-              <ZoomIn className="h-3.5 w-3.5" /> Zoom
-            </button>
+          <div className="group relative aspect-square cursor-zoom-in overflow-hidden bg-secondary/30">
+            <img src={product.image || '/placeholder.svg'} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-150" />
           </div>
 
           <section className="pb-10 lg:pt-1">
@@ -90,12 +77,6 @@ export function ProductDetail({ product }: { product: Product }) {
         </div>
       </div>
 
-      {isZoomed ? (
-        <div role="dialog" aria-modal="true" aria-label={`Image of ${product.name}`} onClick={() => setIsZoomed(false)} className="fixed inset-0 z-[70] grid place-items-center bg-black/85 p-4">
-          <button type="button" autoFocus aria-label="Close image zoom" onClick={() => setIsZoomed(false)} className="absolute right-5 top-5 rounded-full bg-background p-3 text-foreground"><X className="h-5 w-5" /></button>
-          <img src={product.image || '/placeholder.svg'} alt={product.name} onClick={(event) => event.stopPropagation()} className="max-h-[90vh] max-w-[90vw] object-contain" />
-        </div>
-      ) : null}
     </main>
   )
 }
