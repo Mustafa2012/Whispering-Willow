@@ -30,7 +30,6 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-3 text-sm text-white/80">
               <li><a href="/#shop" className="hover:text-white">Home</a></li>
               <li><a href="/#shop" className="hover:text-white">All jewelry</a></li>
-              <li><a href="/?category=Bangles#shop" className="hover:text-white">Bangles</a></li>
               <li><a href="/?category=Bracelets#shop" className="hover:text-white">Bracelets &amp; Anklets</a></li>
               <li><a href="/?category=Earrings#shop" className="hover:text-white">Earrings</a></li>
               <li><a href="/?category=Necklaces#shop" className="hover:text-white">Necklaces</a></li>
