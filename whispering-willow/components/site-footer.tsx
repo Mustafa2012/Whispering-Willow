@@ -44,7 +44,7 @@ export function SiteFooter() {
               <li>Free shipping over Rs. 5,000</li>
               <li>Returns within 3 days</li>
               <li>Exchange &amp; Return Policy</li>
-              <li>FAQs</li>
+              <li><a href="/faq" className="hover:text-white">FAQs</a></li>
             </ul>
           </div>
 
