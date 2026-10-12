@@ -7,7 +7,7 @@ const faqs = [
       'Our gold-plated pieces are designed for everyday wear and are finished with a protective layer to resist tarnishing. With proper care, they remain luminous for extended wear, though exposure to moisture, perfume, and harsh chemicals can speed up oxidation over time.',
   },
   {
-    question: 'Is Wear Ivara jewelry waterproof?',
+    question: 'Is Whispering Willow jewelry waterproof?',
     answer:
       'The pieces are water-resistant for light daily contact, such as handwashing or brief rain exposure. We recommend removing them before swimming, showering, or applying products to preserve the finish and extend their longevity.',
   },
@@ -53,7 +53,7 @@ export function FaqSection() {
             Frequently Asked Questions
           </h2>
           <p className="mx-auto mt-8 max-w-[880px] text-[1.05rem] leading-relaxed text-[#4b433d] md:text-[1.35rem] md:leading-[1.6]">
-            Everything you need to know about wearing, caring for, and choosing your everyday Ivara jewelry.
+            Everything you need to know about wearing, caring for, and choosing your everyday Whispering Willow jewelry.
           </p>
         </div>
 
@@ -96,7 +96,9 @@ export function FaqSection() {
           </p>
           <div className="mt-10 flex justify-center">
             <a
-              href="mailto:hello@whisperingwillow.pk"
+              href="https://www.instagram.com/whisperingwillow.pk/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center bg-[#c4a15b] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.28em] text-[#fffaf5] transition-colors hover:bg-[#b88d44]"
             >
               Contact us
