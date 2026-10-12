@@ -45,40 +45,40 @@ const faqs = [
 
 export function FaqSection() {
   return (
-    <section className="bg-[#f3efe9] text-[#2f2925]">
+    <section className="bg-[#f2f0eb] text-[#2d3933]">
       <div className="mx-auto max-w-[1280px] px-6 py-20 md:px-8 lg:py-24">
         <div className="text-center">
-          <p className="font-sans text-[0.72rem] uppercase tracking-[0.38em] text-[#b18a4d]">Good to know</p>
-          <h2 className="mt-6 font-serif text-[clamp(3.25rem,5vw,7rem)] leading-[0.9] tracking-[-0.04em] text-[#2f2925]">
+          <p className="font-sans text-[0.72rem] uppercase tracking-[0.38em] text-[#7d8d7d]">Good to know</p>
+          <h2 className="mt-6 font-serif text-[clamp(3.25rem,5vw,7rem)] leading-[0.9] tracking-[-0.04em] text-[#2d3933]">
             Frequently Asked Questions
           </h2>
-          <p className="mx-auto mt-8 max-w-[880px] text-[1.05rem] leading-relaxed text-[#4b433d] md:text-[1.35rem] md:leading-[1.6]">
+          <p className="mx-auto mt-8 max-w-[880px] text-[1.05rem] leading-relaxed text-[#425047] md:text-[1.35rem] md:leading-[1.6]">
             Everything you need to know about wearing, caring for, and choosing your everyday Whispering Willow jewelry.
           </p>
         </div>
 
-        <div className="mt-20 border-t border-[#d7d0c5] pt-12">
+        <div className="mt-20 border-t border-[#c8d1c4] pt-12">
           <div className="mb-8 flex items-end justify-between gap-4">
-            <p className="font-sans text-[0.72rem] uppercase tracking-[0.38em] text-[#b18a4d]">Materials &amp; Care</p>
-            <p className="font-sans text-[0.72rem] uppercase tracking-[0.28em] text-[#6d625d]">10 Questions</p>
+            <p className="font-sans text-[0.72rem] uppercase tracking-[0.38em] text-[#7d8d7d]">Materials &amp; Care</p>
+            <p className="font-sans text-[0.72rem] uppercase tracking-[0.28em] text-[#5d6b63]">10 Questions</p>
           </div>
 
           <div className="mb-10 text-left">
-            <h3 className="font-serif text-[clamp(2.2rem,3vw,4rem)] leading-none tracking-[-0.04em] text-[#2f2925]">
+            <h3 className="font-serif text-[clamp(2.2rem,3vw,4rem)] leading-none tracking-[-0.04em] text-[#2d3933]">
               Your questions, answered
             </h3>
           </div>
 
           <div className="space-y-0">
             {faqs.map((faq) => (
-              <details key={faq.question} className="group border-b border-[#d7d0c5]">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-[1.15rem] font-medium leading-relaxed text-[#2f2925] md:text-[1.5rem]">
+              <details key={faq.question} className="group border-b border-[#c8d1c4]">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-[1.15rem] font-medium leading-relaxed text-[#2d3933] md:text-[1.5rem]">
                   <span className="pr-4">{faq.question}</span>
                   <span className="shrink-0">
-                    <ChevronDown className="h-5 w-5 text-[#59514d] transition-transform duration-200 group-open:rotate-180" />
+                    <ChevronDown className="h-5 w-5 text-[#4e5f58] transition-transform duration-200 group-open:rotate-180" />
                   </span>
                 </summary>
-                <div className="pb-6 pr-12 text-base leading-7 text-[#5a514b] md:text-lg md:leading-8">
+                <div className="pb-6 pr-12 text-base leading-7 text-[#425047] md:text-lg md:leading-8">
                   {faq.answer}
                 </div>
               </details>
@@ -86,12 +86,12 @@ export function FaqSection() {
           </div>
         </div>
 
-        <div className="mt-20 rounded-none border border-[#d7d0c5] bg-[#f7f4f0] px-6 py-14 text-center md:px-10 md:py-20">
-          <p className="font-sans text-[0.72rem] uppercase tracking-[0.38em] text-[#b18a4d]">Still curious?</p>
-          <h3 className="mt-8 font-serif text-[clamp(2.8rem,4vw,5rem)] leading-[0.95] tracking-[-0.04em] text-[#2f2925]">
+        <div className="mt-20 border border-[#c8d1c4] bg-[#eef1ec] px-6 py-14 text-center md:px-10 md:py-20">
+          <p className="font-sans text-[0.72rem] uppercase tracking-[0.38em] text-[#7d8d7d]">Still curious?</p>
+          <h3 className="mt-8 font-serif text-[clamp(2.8rem,4vw,5rem)] leading-[0.95] tracking-[-0.04em] text-[#2d3933]">
             We&apos;re happy to help
           </h3>
-          <p className="mx-auto mt-8 max-w-[760px] text-[1.2rem] leading-relaxed text-[#4d433d] md:text-[1.6rem] md:leading-[1.5]">
+          <p className="mx-auto mt-8 max-w-[760px] text-[1.2rem] leading-relaxed text-[#425047] md:text-[1.6rem] md:leading-[1.5]">
             Reach out and we&apos;ll help you find the right piece for your everyday collection.
           </p>
           <div className="mt-10 flex justify-center">
@@ -99,7 +99,7 @@ export function FaqSection() {
               href="https://www.instagram.com/whisperingwillow.pk/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center bg-[#c4a15b] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.28em] text-[#fffaf5] transition-colors hover:bg-[#b88d44]"
+              className="inline-flex items-center justify-center bg-[#a8b7a1] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.28em] text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
             >
               Contact us
             </a>
