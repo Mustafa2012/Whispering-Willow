@@ -86,7 +86,7 @@ export function FaqSection() {
           </div>
         </div>
 
-        <div className="mt-20 border border-[#c8d1c4] bg-[#eef1ec] px-6 py-14 text-center md:px-10 md:py-20">
+        <div className="mt-20 border border-[#c8d1c4] bg-[#f5f0ea] px-6 py-14 text-center md:px-10 md:py-20">
           <p className="font-sans text-[0.72rem] uppercase tracking-[0.38em] text-[#7d8d7d]">Still curious?</p>
           <h3 className="mt-8 font-serif text-[clamp(2.8rem,4vw,5rem)] leading-[0.95] tracking-[-0.04em] text-[#2d3933]">
             We&apos;re happy to help

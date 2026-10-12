@@ -8,7 +8,7 @@ import { CartDrawer } from '@/components/cart-drawer'
 import { customerSupabase, getCustomerAuthHeaders } from '@/lib/customer-browser'
 
 const links = [
-  { label: 'Shop', href: '#shop' },
+  { label: 'Shop', href: '/#shop' },
   { label: 'FAQ', href: '/faq' },
   { label: 'My orders', href: '/orders' },
 ]
