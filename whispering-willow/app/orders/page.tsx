@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
 import { getCustomerAuthHeaders } from '@/lib/customer-browser'
-import { DELIVERY_CHARGE, ORDER_DISCOUNT } from '@/lib/order-pricing'
 import { CustomerReviewForm } from '@/components/customer-review-form'
+import { downloadOrderReceipt } from '@/lib/order-receipt'
 
 type CustomerOrder = {
   order_number: string
@@ -63,98 +63,6 @@ export default function OrdersPage() {
     void loadOrders()
   }, [])
 
-  async function generateReceipt(order: CustomerOrder) {
-    const width = 900
-    const lineHeight = 42
-    const height = 610 + order.items.length * lineHeight
-    const canvas = document.createElement('canvas')
-    canvas.width = width * 2
-    canvas.height = height * 2
-    const context = canvas.getContext('2d')
-    if (!context) return
-
-    context.scale(2, 2)
-    context.fillStyle = '#fbf8f2'
-    context.fillRect(0, 0, width, height)
-    const logo = new Image()
-    logo.src = '/whispering-willow-logo.png'
-    await new Promise<void>((resolve) => {
-      logo.onload = () => resolve()
-      logo.onerror = () => resolve()
-    })
-    if (logo.complete && logo.naturalWidth > 0) {
-      context.drawImage(logo, 60, 35, 72, 72)
-    }
-    context.fillStyle = '#332d27'
-    context.font = 'bold 34px Georgia, serif'
-    context.fillText('Whispering Willow', 155, 70)
-    context.font = '20px Arial, sans-serif'
-    context.fillStyle = '#6f665d'
-    context.fillText('Order receipt', 155, 105)
-    context.textAlign = 'right'
-    context.fillStyle = '#332d27'
-    context.font = 'bold 22px Arial, sans-serif'
-    context.fillText(order.order_number, width - 60, 70)
-    context.font = '18px Arial, sans-serif'
-    context.fillStyle = '#6f665d'
-    context.fillText(new Date(order.created_at).toLocaleDateString(), width - 60, 105)
-    context.textAlign = 'left'
-    context.strokeStyle = '#d8d0c5'
-    context.beginPath()
-    context.moveTo(60, 135)
-    context.lineTo(width - 60, 135)
-    context.stroke()
-    context.fillStyle = '#332d27'
-    context.font = '18px Arial, sans-serif'
-    context.fillText(`Status: ${statusLabels[order.status] || order.status}`, 60, 180)
-    context.fillText(`Payment: ${order.payment_method.replace('_', ' ')}`, 60, 215)
-    context.fillText(`Delivery: ${order.address}`, 60, 250)
-    if (order.discount_code) context.fillText(`Discount code: ${order.discount_code}`, 60, 285)
-    context.font = 'bold 18px Arial, sans-serif'
-    context.fillStyle = '#332d27'
-    context.fillText('Item', 60, 330)
-    context.fillText('Price', 570, 330)
-    context.fillText('Quantity', 740, 330)
-    let itemY = 370
-    order.items.forEach((item) => {
-      context.font = '18px Arial, sans-serif'
-      context.fillStyle = '#6f665d'
-      context.fillText(`${item.name}${item.selected_size ? ` (Size ${item.selected_size})` : ''}`, 60, itemY)
-      context.fillText(formatPrice(item.price), 570, itemY)
-      context.fillText(String(item.quantity), 740, itemY)
-      context.fillStyle = '#332d27'
-      context.strokeStyle = '#e6dfd6'
-      context.beginPath()
-      context.moveTo(60, itemY + 14)
-      context.lineTo(width - 60, itemY + 14)
-      context.stroke()
-      itemY += lineHeight
-    })
-    context.textAlign = 'right'
-    context.font = '18px Arial, sans-serif'
-    context.fillStyle = '#6f665d'
-    const discountAmount = order.discount ?? ORDER_DISCOUNT
-    const deliveryCharge = order.delivery_charge ?? DELIVERY_CHARGE
-    context.fillText(`Subtotal: ${formatPrice(order.subtotal ?? Math.max(0, order.total - (order.delivery_charge ?? DELIVERY_CHARGE) + (order.discount ?? ORDER_DISCOUNT)))}`, width - 60, itemY + 35)
-    context.fillText(`Discount: ${discountAmount === 0 ? formatPrice(0) : `-${formatPrice(discountAmount)}`}`, width - 60, itemY + 68)
-    context.fillText(`Delivery charges: ${deliveryCharge === 0 ? 'Free' : formatPrice(deliveryCharge)}`, width - 60, itemY + 101)
-    context.textAlign = 'right'
-    context.font = 'bold 24px Arial, sans-serif'
-    context.fillStyle = '#332d27'
-    context.fillText(`Total: ${formatPrice(order.total)}`, width - 60, itemY + 145)
-
-    const imageBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
-    if (!imageBlob) return
-    const receiptUrl = URL.createObjectURL(imageBlob)
-    const downloadLink = document.createElement('a')
-    downloadLink.href = receiptUrl
-    downloadLink.download = `receipt-${order.order_number}.png`
-    document.body.appendChild(downloadLink)
-    downloadLink.click()
-    downloadLink.remove()
-    URL.revokeObjectURL(receiptUrl)
-  }
-
   return (
     <main className="min-h-screen bg-secondary/30 px-6 py-12 md:py-20">
       <div className="mx-auto max-w-4xl">
@@ -172,7 +80,7 @@ export default function OrdersPage() {
             <article key={order.order_number} className="rounded-2xl border border-border/70 bg-background p-5 md:p-6">
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/60 pb-4">
                 <div><p className="text-xs uppercase tracking-[0.16em] text-primary">{order.order_number}</p><p className="mt-1 text-sm text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p></div>
-                <button type="button" onClick={() => generateReceipt(order)} className="rounded-full border border-border px-4 py-2 text-xs text-foreground transition-colors hover:border-primary">Receipt</button>
+                <button type="button" onClick={() => void downloadOrderReceipt(order)} className="rounded-full border border-border px-4 py-2 text-xs text-foreground transition-colors hover:border-primary">Receipt</button>
                 <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground">{statusLabels[order.status] || order.status}</span>
               </div>
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">{order.items.map((item) => <div key={`${order.order_number}-${item.name}-${item.selected_size || ''}`} className="flex justify-between gap-4"><span>{item.name}{item.selected_size ? ` (Size ${item.selected_size})` : ''} × {item.quantity}</span><span>{formatPrice(item.total)}</span></div>)}</div>

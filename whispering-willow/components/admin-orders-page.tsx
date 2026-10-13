@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { downloadOrderReceipt } from '@/lib/order-receipt'
 
 type AdminOrder = {
   id: number
@@ -14,10 +15,14 @@ type AdminOrder = {
   proof_url?: string
   notes?: string
   admin_notes?: string
+  subtotal?: number
+  discount?: number
+  discount_code?: string
+  delivery_charge?: number
   order_items?: Array<{ id: number; name: string; price: number; quantity: number; total: number; selected_size?: string | null }>
   total: number
   status: string
-  created_at?: string
+  created_at: string
 }
 
 const adminSessionKey = 'whispering-willow-admin-authenticated'
@@ -172,12 +177,35 @@ export function AdminOrdersPage() {
                     <h3 className="mt-2 font-serif text-2xl text-foreground">{order.customer_name}</h3>
                     <p className="mt-1 text-sm text-muted-foreground">{order.email} · {order.phone}</p>
                     <p className="mt-3 text-sm text-foreground">{order.address}</p>
-                    {order.created_at ? <p className="mt-2 text-xs text-muted-foreground">Placed {new Date(order.created_at).toLocaleString()}</p> : null}
+                    <p className="mt-2 text-xs text-muted-foreground">Placed {new Date(order.created_at).toLocaleString()}</p>
                     {order.order_items?.length ? <div className="mt-4 space-y-1 border-t border-border/60 pt-3">{order.order_items.map((item) => <p key={item.id} className="text-sm text-muted-foreground">{item.quantity} × {item.name}{item.selected_size ? ` (Size ${item.selected_size})` : ''} <span className="text-foreground">(PKR {Number(item.total).toLocaleString('en-PK')})</span></p>)}</div> : null}
                     {order.notes ? <p className="mt-3 text-sm text-muted-foreground">Customer note: {order.notes}</p> : null}
                   </div>
                   <div className="flex min-w-56 flex-col items-start gap-3 lg:items-end">
                     <div className="text-left lg:text-right"><p className="font-serif text-2xl text-foreground">PKR {Number(order.total).toLocaleString('en-PK')}</p><p className="text-xs uppercase tracking-wide text-muted-foreground">{order.payment_method.replace('_', ' ')}</p></div>
+                    <button
+                      type="button"
+                      onClick={() => void downloadOrderReceipt({
+                        order_number: order.order_number || String(order.id),
+                        subtotal: order.subtotal,
+                        discount: order.discount,
+                        discount_code: order.discount_code,
+                        delivery_charge: order.delivery_charge,
+                        total: order.total,
+                        payment_method: order.payment_method,
+                        created_at: order.created_at,
+                        address: order.address,
+                        items: (order.order_items || []).map((item) => ({
+                          name: item.name,
+                          price: item.price,
+                          quantity: item.quantity,
+                          selected_size: item.selected_size,
+                        })),
+                      })}
+                      className="rounded-full border border-border px-4 py-2 text-xs text-foreground transition-colors hover:border-primary"
+                    >
+                      Download receipt
+                    </button>
                     {order.transaction_reference ? <p className="text-sm text-muted-foreground">Reference: {order.transaction_reference}</p> : null}
                     {order.proof_url ? <a href={order.proof_url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:text-foreground">View transfer proof</a> : null}
                     <select value={order.status} onChange={(event) => void updateOrder(order, event.target.value)} className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm lg:w-auto"><option value="pending">Pending</option><option value="confirmed">Approved</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="completed">Completed</option><option value="cancelled">Declined</option></select>
