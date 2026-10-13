@@ -1,6 +1,6 @@
  'use client'
 
-import { Search, ShoppingBag, SlidersHorizontal, X } from 'lucide-react'
+import { ShoppingBag, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { formatPrice, slugifyProductName, type Product } from '@/lib/products'
@@ -12,11 +12,9 @@ type ProductGridProps = {
 
 export function ProductGrid({ products }: ProductGridProps) {
   const { addItem } = useCart()
-  const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
   const [sort, setSort] = useState('newest')
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
   const [addedProductName, setAddedProductName] = useState<string | null>(null)
   const addedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const categoryOrder = ['Bangles', 'Bracelets', 'Earrings', 'Necklaces', 'Rings']
@@ -28,11 +26,9 @@ export function ProductGrid({ products }: ProductGridProps) {
   }, [])
 
   const filteredProducts = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase()
     const filtered = products.filter((product) => {
-      const matchesQuery = !normalizedQuery || `${product.name} ${product.description}`.toLowerCase().includes(normalizedQuery)
       const matchesCategory = category === 'All' || product.category === category
-      return product.isActive !== false && matchesQuery && matchesCategory
+      return product.isActive !== false && matchesCategory
     })
 
     return [...filtered].sort((left, right) => {
@@ -47,7 +43,7 @@ export function ProductGrid({ products }: ProductGridProps) {
       if (sort === 'name') return left.name.localeCompare(right.name)
       return products.indexOf(left) - products.indexOf(right)
     })
-  }, [category, products, query, sort])
+  }, [category, products, sort])
 
   const handleAddToCart = (product: Product) => {
     addItem(product)
@@ -81,15 +77,6 @@ export function ProductGrid({ products }: ProductGridProps) {
             <span className="text-sm text-muted-foreground">{filteredProducts.length} products</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            {searchOpen ? (
-              <label className="relative block w-44 sm:w-56">
-                <span className="sr-only">Search products</span>
-                <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search jewelry" className="w-full border-b border-border bg-transparent py-2 pl-2 pr-8 text-sm text-foreground outline-none focus:border-primary" />
-                <button type="button" onClick={() => { setQuery(''); setSearchOpen(false) }} aria-label="Close search" className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
-              </label>
-            ) : (
-              <button type="button" onClick={() => setSearchOpen(true)} aria-label="Search products" className="p-2 text-foreground hover:text-primary"><Search className="h-4 w-4" /></button>
-            )}
             <label>
               <span className="sr-only">Sort products</span>
               <select value={sort} onChange={(event) => setSort(event.target.value)} className="max-w-40 border-0 bg-transparent py-2 pl-2 pr-7 text-sm text-foreground outline-none focus:ring-0">

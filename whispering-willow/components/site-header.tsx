@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { LogOut, Menu, ShoppingBag, X } from 'lucide-react'
+import { LogOut, Menu, ShoppingBag, UserRound, X } from 'lucide-react'
 import { useCart } from '@/components/cart-provider'
 import { CartDrawer } from '@/components/cart-drawer'
 import { customerSupabase, getCustomerAuthHeaders } from '@/lib/customer-browser'
@@ -37,8 +37,18 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <a href="/" className="flex items-center gap-2">
+      <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-6 py-3">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="justify-self-start text-foreground"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
+        >
+          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+
+        <a href="/" className="flex items-center gap-2 justify-self-center">
           <Image
             src="/whispering-willow-logo.png"
             alt="Whispering Willow"
@@ -46,43 +56,67 @@ export function SiteHeader() {
             height={44}
             className="h-11 w-11 rounded-full object-cover"
           />
-          <span className="font-serif text-xl tracking-wide text-foreground">
+          <span className="hidden font-serif text-xl tracking-wide text-foreground sm:inline">
             Whispering Willow
           </span>
         </a>
 
-        <nav className="hidden items-center gap-8 md:flex">
-          {links.map((link) => (
+        <div className="flex items-center justify-self-end gap-2">
+          <button
+            type="button"
+            onClick={() => setCartOpen(true)}
+            className="relative p-2 text-foreground transition-colors hover:text-primary"
+            aria-label={`Open cart (${itemCount} items)`}
+          >
+            <ShoppingBag className="h-6 w-6" />
+            {itemCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[0.65rem] text-primary-foreground">
+                {itemCount}
+              </span>
+            )}
+          </button>
+          {customerEmail ? (
+            <>
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                className="p-2 text-muted-foreground transition-colors hover:text-foreground"
+                title="Sign out"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+              <a
+                href="/orders"
+                className="h-9 w-9 overflow-hidden rounded-full border border-gold/60"
+                title={`View orders for ${customerEmail}`}
+                aria-label={`View orders for ${customerEmail}`}
+              >
+                {customerAvatar ? (
+                  <img src={customerAvatar} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center bg-secondary text-xs text-foreground">
+                    {customerEmail.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+              </a>
+            </>
+          ) : (
             <a
-              key={link.href}
-              href={link.href}
-              className="text-sm tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+              href="/login"
+              className="p-2 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Sign in"
+              title="Sign in"
             >
-              {link.label}
+              <UserRound className="h-5 w-5" />
             </a>
-          ))}
-        </nav>
-
-        <button type="button" onClick={() => setCartOpen(true)} className="hidden items-center gap-2 rounded-full border border-gold/60 px-5 py-2 text-sm tracking-wide text-foreground transition-colors hover:bg-gold hover:text-background md:flex">
-          <ShoppingBag className="h-4 w-4" />
-          Cart ({itemCount})
-        </button>
-        {customerEmail ? <div className="hidden items-center gap-3 md:flex"><a href="/orders" className="h-9 w-9 overflow-hidden rounded-full border border-gold/60" title={`View orders for ${customerEmail}`} aria-label={`View orders for ${customerEmail}`}>{customerAvatar ? <img src={customerAvatar} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center bg-secondary text-xs text-foreground">{customerEmail.slice(0, 1).toUpperCase()}</span>}</a><button type="button" onClick={() => void signOut()} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground" title="Sign out"><LogOut className="h-4 w-4" />Sign out</button></div> : <a href="/login" className="hidden text-xs text-muted-foreground hover:text-foreground md:block">Sign in</a>}
-
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="text-foreground md:hidden"
-          aria-label={open ? 'Close menu' : 'Open menu'}
-          aria-expanded={open}
-        >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+          )}
+        </div>
       </div>
 
       {open && (
-        <nav className="border-t border-border/60 bg-background px-6 py-4 md:hidden">
-          <ul className="flex flex-col gap-4">
+        <nav className="border-t border-border/60 bg-background px-6 py-4">
+          <ul className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:justify-center md:gap-8">
             {links.map((link) => (
               <li key={link.href}>
                 <a
@@ -94,18 +128,6 @@ export function SiteHeader() {
                 </a>
               </li>
             ))}
-            <li>
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false)
-                  setCartOpen(true)
-                }}
-                className="mt-1 inline-block rounded-full border border-gold/60 px-5 py-2 text-sm tracking-wide text-foreground"
-              >
-                Cart ({itemCount})
-              </button>
-            </li>
           </ul>
         </nav>
       )}
