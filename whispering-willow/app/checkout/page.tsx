@@ -5,7 +5,12 @@ import { useEffect, useState } from 'react'
 import { formatPrice } from '@/lib/products'
 import { useCart } from '@/components/cart-provider'
 import { getCustomerAuthHeaders } from '@/lib/customer-browser'
-import { calculateOrderTotal, DELIVERY_CHARGE, ORDER_DISCOUNT } from '@/lib/order-pricing'
+import { calculateOrderTotal, ORDER_DISCOUNT } from '@/lib/order-pricing'
+import {
+  calculateShippingCharge,
+  DEFAULT_SHIPPING_SETTINGS,
+  type ShippingSettings,
+} from '@/lib/shipping-settings'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -20,6 +25,11 @@ export default function CheckoutPage() {
   const [discountCode, setDiscountCode] = useState('')
   const [appliedDiscount, setAppliedDiscount] = useState(0)
   const [discountMessage, setDiscountMessage] = useState('')
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(DEFAULT_SHIPPING_SETTINGS)
+  const [isLoadingShippingSettings, setIsLoadingShippingSettings] = useState(true)
+  const [shippingSettingsError, setShippingSettingsError] = useState('')
+
+  const deliveryCharge = calculateShippingCharge(subtotal, shippingSettings)
 
   useEffect(() => {
     getCustomerAuthHeaders().then((headers) => fetch('/api/auth/me', { headers })).then((response) => response.json()).then((result: { authenticated: boolean; email?: string }) => {
@@ -27,8 +37,27 @@ export default function CheckoutPage() {
     }).finally(() => setIsCheckingAuth(false))
   }, [])
 
+  useEffect(() => {
+    fetch('/api/shipping-settings')
+      .then(async (response) => {
+        const result = await response.json() as ShippingSettings | { error?: string }
+        if (!response.ok) {
+          throw new Error((result as { error?: string }).error || 'Unable to load shipping settings.')
+        }
+        setShippingSettings(result as ShippingSettings)
+      })
+      .catch((error: unknown) => {
+        setShippingSettingsError(error instanceof Error ? error.message : 'Unable to load shipping settings.')
+      })
+      .finally(() => setIsLoadingShippingSettings(false))
+  }, [])
+
   async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (shippingSettingsError || isLoadingShippingSettings) {
+      setMessage(shippingSettingsError || 'Shipping settings are still loading.')
+      return
+    }
     setIsSubmitting(true)
     setMessage('')
     const form = new FormData(event.currentTarget)
@@ -91,6 +120,10 @@ export default function CheckoutPage() {
     return <main className="flex min-h-screen items-center justify-center bg-secondary/30 px-6"><section className="max-w-md rounded-2xl border border-border/70 bg-background p-8 text-center"><h1 className="font-serif text-4xl">Sign in to checkout</h1><p className="mt-3 text-muted-foreground">Use Google to continue before placing your order.</p><a href="/login" className="mt-6 inline-block rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground">Continue with Google</a></section></main>
   }
 
+  if (isLoadingShippingSettings) {
+    return <main className="flex min-h-screen items-center justify-center bg-secondary/30 px-6"><p className="text-sm text-muted-foreground">Loading shipping options...</p></main>
+  }
+
   return <main className="min-h-screen bg-secondary/30 px-6 py-12 md:py-20">
     <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1fr_320px]">
       <section className="rounded-2xl border border-border/70 bg-background p-6 md:p-8">
@@ -103,11 +136,12 @@ export default function CheckoutPage() {
           <div className="grid gap-3 sm:grid-cols-2"><label className={`rounded-xl border p-4 ${paymentMethod === 'cod' ? 'border-primary bg-primary/5' : 'border-border'}`}><input type="radio" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="mr-2" />Cash on delivery</label><label className={`rounded-xl border p-4 ${paymentMethod === 'bank_transfer' ? 'border-primary bg-primary/5' : 'border-border'}`}><input type="radio" checked={paymentMethod === 'bank_transfer'} onChange={() => setPaymentMethod('bank_transfer')} className="mr-2" />Bank transfer</label></div>
           {paymentMethod === 'bank_transfer' ? <div className="space-y-3 rounded-xl bg-secondary/30 p-4 text-sm"><p className="font-medium">Transfer to: Whispering Willow, Meezan Bank, Account 0000000000</p><input name="transactionReference" required placeholder="Transaction reference" className="w-full rounded-xl border border-border bg-card px-4 py-3 outline-none" /><label className="block rounded-xl border border-dashed border-primary/50 p-4 text-center"><span className="block text-muted-foreground">{isUploading ? 'Uploading proof...' : proofUrl ? 'Proof uploaded' : 'Upload transaction proof'}</span><input type="file" accept="image/*" required={!proofUrl} onChange={(event) => void uploadProof(event.target.files?.[0])} className="sr-only" /></label></div> : null}
           <textarea name="notes" rows={3} placeholder="Order notes (optional)" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none" />
+          {shippingSettingsError ? <p className="text-sm text-destructive">{shippingSettingsError}</p> : null}
           {message ? <p className="text-sm text-destructive">{message}</p> : null}
-          <button disabled={isSubmitting} className="w-full rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground disabled:opacity-60">{isSubmitting ? 'Placing order...' : 'Place order'}</button>
+          <button disabled={isSubmitting || Boolean(shippingSettingsError)} className="w-full rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground disabled:opacity-60">{isSubmitting ? 'Placing order...' : 'Place order'}</button>
         </form>
       </section>
-      <aside className="h-fit rounded-2xl border border-border/70 bg-background p-6"><h2 className="font-serif text-2xl">Order summary</h2><div className="mt-5 space-y-3">{items.map((item) => <div key={`${item.name}-${item.selectedSize || ''}`} className="flex justify-between gap-3 text-sm"><span>{item.name}{item.selectedSize ? ` (Size ${item.selectedSize})` : ''} × {item.quantity}</span><span>{formatPrice(item.price * item.quantity)}</span></div>)}</div><div className="mt-6 flex gap-2 border-t border-border pt-4"><input value={discountCode} onChange={(event) => setDiscountCode(event.target.value.toUpperCase())} placeholder="Discount code" className="min-w-0 flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none" /><button type="button" onClick={() => void applyDiscountCode()} className="rounded-xl bg-foreground px-3 py-2 text-xs text-background">Apply</button></div>{discountMessage ? <p className="mt-2 text-xs text-muted-foreground">{discountMessage}</p> : null}<div className="mt-4 space-y-2 border-t border-border pt-4 text-sm"><div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div><div className="flex justify-between"><span>Discount</span><span>-{formatPrice(appliedDiscount || ORDER_DISCOUNT)}</span></div><div className="flex justify-between"><span>Delivery charges</span><span>{formatPrice(DELIVERY_CHARGE)}</span></div></div><div className="mt-4 flex justify-between border-t border-border pt-4 font-medium"><span>Total</span><span>{formatPrice(calculateOrderTotal(subtotal, appliedDiscount))}</span></div></aside>
+      <aside className="h-fit rounded-2xl border border-border/70 bg-background p-6"><h2 className="font-serif text-2xl">Order summary</h2><div className="mt-5 space-y-3">{items.map((item) => <div key={`${item.name}-${item.selectedSize || ''}`} className="flex justify-between gap-3 text-sm"><span>{item.name}{item.selectedSize ? ` (Size ${item.selectedSize})` : ''} × {item.quantity}</span><span>{formatPrice(item.price * item.quantity)}</span></div>)}</div><div className="mt-6 flex gap-2 border-t border-border pt-4"><input value={discountCode} onChange={(event) => setDiscountCode(event.target.value.toUpperCase())} placeholder="Discount code" className="min-w-0 flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none" /><button type="button" onClick={() => void applyDiscountCode()} className="rounded-xl bg-foreground px-3 py-2 text-xs text-background">Apply</button></div>{discountMessage ? <p className="mt-2 text-xs text-muted-foreground">{discountMessage}</p> : null}<div className="mt-4 space-y-2 border-t border-border pt-4 text-sm"><div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div><div className="flex justify-between"><span>Discount</span><span>-{formatPrice(appliedDiscount || ORDER_DISCOUNT)}</span></div><div className="flex justify-between"><span>Delivery charges</span><span>{deliveryCharge === 0 ? 'Free' : formatPrice(deliveryCharge)}</span></div></div>{shippingSettings.freeShippingEnabled && subtotal < shippingSettings.freeShippingThreshold ? <p className="mt-3 text-xs text-muted-foreground">Free shipping on orders of {formatPrice(shippingSettings.freeShippingThreshold)} or more.</p> : null}<div className="mt-4 flex justify-between border-t border-border pt-4 font-medium"><span>Total</span><span>{formatPrice(calculateOrderTotal(subtotal, appliedDiscount, deliveryCharge))}</span></div></aside>
     </div>
   </main>
 }

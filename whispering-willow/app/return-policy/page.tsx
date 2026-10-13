@@ -98,7 +98,7 @@ export default function ReturnPolicyPage() {
             ))}
           </div>
 
-          <aside className="mt-6 bg-[#e7e9e1] px-6 py-10 text-center md:px-10 md:py-12">
+          <aside className="mt-6 bg-secondary/30 px-6 py-10 text-center md:px-10 md:py-12">
             <h2 className="font-serif text-3xl tracking-tight md:text-4xl">
               A Little Note From Us 🤎
             </h2>
@@ -124,7 +124,7 @@ export default function ReturnPolicyPage() {
                 href="https://wa.me/923353637626"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 border border-[#a8b7a1] px-5 py-3 text-sm text-[#2d3933] transition-colors hover:bg-secondary/30"
+                className="inline-flex items-center gap-2 bg-[#a8b7a1] px-5 py-3 text-sm text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
               >
                 <MessageCircle className="h-4 w-4" />
                 WhatsApp

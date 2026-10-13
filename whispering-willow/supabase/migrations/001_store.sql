@@ -49,6 +49,9 @@ create table if not exists store_settings (
   contact_phone text not null default '',
   instagram_url text not null default '',
   checkout_note text not null default '',
+  delivery_charge numeric not null default 250 check (delivery_charge >= 0),
+  free_shipping_enabled boolean not null default true,
+  free_shipping_threshold numeric not null default 5000 check (free_shipping_threshold >= 0),
   updated_at timestamptz not null default now()
 );
 

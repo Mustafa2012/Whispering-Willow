@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getProducts, isProductDatabaseConfigured } from '@/lib/products-server'
 import { getCustomerSession } from '@/lib/customer-auth'
-import { calculateOrderTotal, DELIVERY_CHARGE, ORDER_DISCOUNT } from '@/lib/order-pricing'
+import { calculateOrderTotal, ORDER_DISCOUNT } from '@/lib/order-pricing'
+import { calculateShippingCharge } from '@/lib/shipping-settings'
+import { getShippingSettings } from '@/lib/shipping-settings-server'
 
 type OrderRequest = {
   customerName?: string
@@ -81,6 +83,8 @@ export async function POST(request: Request) {
       return { product_id: product.id, name: product.name, price: product.price, quantity, selected_size: item.selectedSize || null, total: product.price * quantity }
     })
     const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0)
+    const shippingSettings = await getShippingSettings()
+    const deliveryCharge = calculateShippingCharge(subtotal, shippingSettings)
     let discount = ORDER_DISCOUNT
     let discountUsageCount = 0
     if (discountCode) {
@@ -91,12 +95,12 @@ export async function POST(request: Request) {
       discount = discountRow.discount_type === 'percentage' ? subtotal * Number(discountRow.value) / 100 : Number(discountRow.value)
       discount = Math.min(subtotal, Math.max(0, discount))
     }
-    const total = calculateOrderTotal(subtotal, discount)
+    const total = calculateOrderTotal(subtotal, discount, deliveryCharge)
     const headers = { apikey: serviceRoleKey!, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' }
     const orderResponse = await fetch(`${supabaseUrl}/rest/v1/orders`, {
       method: 'POST',
       headers: { ...headers, Prefer: 'return=representation' },
-      body: JSON.stringify({ user_id: user.id, customer_name: customerName, email, phone, address, payment_method: paymentMethod, transaction_reference: body.transactionReference?.trim() || null, proof_url: body.proofUrl?.trim() || null, notes: body.notes?.trim() || null, subtotal, discount, discount_code: discountCode || null, delivery_charge: DELIVERY_CHARGE, total, status: 'pending' }),
+      body: JSON.stringify({ user_id: user.id, customer_name: customerName, email, phone, address, payment_method: paymentMethod, transaction_reference: body.transactionReference?.trim() || null, proof_url: body.proofUrl?.trim() || null, notes: body.notes?.trim() || null, subtotal, discount, discount_code: discountCode || null, delivery_charge: deliveryCharge, total, status: 'pending' }),
     })
     if (orderResponse.status === 404) throw new Error('Order tables are not set up yet. Run supabase/migrations/001_store.sql in your Supabase SQL editor.')
     if (!orderResponse.ok) throw new Error('Unable to create order.')

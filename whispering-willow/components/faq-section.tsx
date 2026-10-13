@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, MessageCircle } from 'lucide-react'
 
 const faqs = [
   {
@@ -77,16 +77,25 @@ export function FaqSection() {
             We&apos;re just a message away.
           </h3>
           <p className="mx-auto mt-8 max-w-[760px] text-[1.2rem] leading-relaxed text-[#425047] md:text-[1.6rem] md:leading-[1.5]">
-            Have a question about your order or a piece you love? Send us a note on Instagram and we’ll be happy to help.
+            Reach out and we&apos;ll help you find the right piece for your everyday collection.
           </p>
-          <div className="mt-10 flex justify-center">
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
             <a
               href="https://www.instagram.com/whisperingwillow.pk/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center bg-[#a8b7a1] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.28em] text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
             >
-              Contact us
+              Instagram
+            </a>
+            <a
+              href="https://wa.me/923353637626"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 bg-[#a8b7a1] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.28em] text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
             </a>
           </div>
           <p className="mt-8 text-sm text-[#5d6b63]">

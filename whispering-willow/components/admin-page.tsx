@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { Product } from '@/lib/products'
+import { DEFAULT_SHIPPING_SETTINGS, type ShippingSettings } from '@/lib/shipping-settings'
 
 const emptyForm = {
   name: '',
@@ -14,6 +15,11 @@ const emptyForm = {
 
 type ProductForm = typeof emptyForm
 type DiscountCode = { id: number; code: string; discount_type: 'percentage' | 'fixed'; value: number; is_active: boolean; expires_at?: string; usage_limit?: number | null; usage_count: number }
+type ShippingSettingsForm = {
+  deliveryCharge: string
+  freeShippingEnabled: boolean
+  freeShippingThreshold: string
+}
 const adminSessionKey = 'whispering-willow-admin-authenticated'
 const adminPasswordSessionKey = 'whispering-willow-admin-password'
 
@@ -29,6 +35,11 @@ export function AdminPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([])
   const [discountForm, setDiscountForm] = useState({ code: '', discountType: 'percentage', value: '', expiresAt: '', usageLimit: '' })
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettingsForm>({
+    deliveryCharge: String(DEFAULT_SHIPPING_SETTINGS.deliveryCharge),
+    freeShippingEnabled: DEFAULT_SHIPPING_SETTINGS.freeShippingEnabled,
+    freeShippingThreshold: String(DEFAULT_SHIPPING_SETTINGS.freeShippingThreshold),
+  })
 
   useEffect(() => {
     const sessionPassword = sessionStorage.getItem(adminPasswordSessionKey)
@@ -50,14 +61,25 @@ export function AdminPage() {
     Promise.all([
       fetch('/api/products'),
       fetch('/api/admin/discounts', { headers: { 'x-admin-password': password } }),
+      fetch('/api/admin/shipping-settings', { headers: { 'x-admin-password': password } }),
     ])
-      .then(async ([productResponse, discountResponse]) => {
+      .then(async ([productResponse, discountResponse, shippingResponse]) => {
         if (!productResponse.ok) throw new Error('Unable to load products.')
         if (discountResponse.ok) setDiscountCodes(await discountResponse.json() as DiscountCode[])
+        if (!shippingResponse.ok) {
+          const result = await shippingResponse.json() as { error?: string }
+          throw new Error(result.error || 'Unable to load shipping settings.')
+        }
+        const settings = await shippingResponse.json() as ShippingSettings
+        setShippingSettings({
+          deliveryCharge: String(settings.deliveryCharge),
+          freeShippingEnabled: settings.freeShippingEnabled,
+          freeShippingThreshold: String(settings.freeShippingThreshold),
+        })
         return productResponse.json() as Promise<Product[]>
       })
       .then(setProducts)
-      .catch(() => setMessage('Unable to load products. Check your database configuration.'))
+      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Unable to load admin data.'))
       .finally(() => setIsLoading(false))
   }, [isAuthorized])
 
@@ -226,6 +248,31 @@ export function AdminPage() {
     if (response.ok) setDiscountCodes((current) => current.filter((item) => item.id !== discount.id))
   }
 
+  const saveShippingSettings = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const response = await fetch('/api/admin/shipping-settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+      body: JSON.stringify({
+        deliveryCharge: Number(shippingSettings.deliveryCharge),
+        freeShippingEnabled: shippingSettings.freeShippingEnabled,
+        freeShippingThreshold: Number(shippingSettings.freeShippingThreshold),
+      }),
+    })
+    const result = await response.json() as ShippingSettings | { error?: string }
+    if (!response.ok) {
+      setMessage((result as { error?: string }).error || 'Unable to save shipping settings.')
+      return
+    }
+    const saved = result as ShippingSettings
+    setShippingSettings({
+      deliveryCharge: String(saved.deliveryCharge),
+      freeShippingEnabled: saved.freeShippingEnabled,
+      freeShippingThreshold: String(saved.freeShippingThreshold),
+    })
+    setMessage('Shipping settings saved.')
+  }
+
   if (!isAuthorized) {
     return null
   }
@@ -311,6 +358,49 @@ export function AdminPage() {
                 <input type="number" min="1" value={discountForm.usageLimit} onChange={(event) => setDiscountForm((current) => ({ ...current, usageLimit: event.target.value }))} placeholder="Usage limit (optional)" className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none md:col-span-2" />
               </form>
               <div className="mt-4 space-y-2">{discountCodes.map((discount) => <div key={discount.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-background px-4 py-3"><div><strong className="text-sm tracking-wide text-foreground">{discount.code}</strong><span className="ml-3 text-sm text-muted-foreground">{discount.discount_type === 'percentage' ? `${discount.value}% off` : `${discount.value} PKR off`} · {discount.usage_count}{discount.usage_limit ? `/${discount.usage_limit}` : ''} uses</span></div><div className="flex gap-2"><button type="button" onClick={() => void toggleDiscountCode(discount)} className="rounded-full border border-border px-3 py-1 text-xs">{discount.is_active ? 'Active' : 'Inactive'}</button><button type="button" onClick={() => void deleteDiscountCode(discount)} className="rounded-full border border-destructive/50 px-3 py-1 text-xs text-destructive">Delete</button></div></div>)}</div>
+            </div>
+
+            <div className="mt-12 border-t border-border/70 pt-8">
+              <h2 className="mb-4 font-serif text-3xl text-foreground">Shipping settings</h2>
+              <form onSubmit={saveShippingSettings} className="space-y-4 rounded-2xl border border-border/70 bg-background p-5">
+                <label className="block space-y-2 text-sm text-foreground">
+                  <span>Delivery charge (PKR)</span>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={shippingSettings.deliveryCharge}
+                    onChange={(event) => setShippingSettings((current) => ({ ...current, deliveryCharge: event.target.value }))}
+                    className="w-full rounded-xl border border-border bg-card px-3 py-2 outline-none"
+                  />
+                </label>
+                <label className="flex items-center gap-3 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={shippingSettings.freeShippingEnabled}
+                    onChange={(event) => setShippingSettings((current) => ({ ...current, freeShippingEnabled: event.target.checked }))}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  Enable free shipping above a minimum order
+                </label>
+                <label className="block space-y-2 text-sm text-foreground">
+                  <span>Free shipping minimum order (PKR)</span>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={shippingSettings.freeShippingThreshold}
+                    onChange={(event) => setShippingSettings((current) => ({ ...current, freeShippingThreshold: event.target.value }))}
+                    className="w-full rounded-xl border border-border bg-card px-3 py-2 outline-none disabled:opacity-50"
+                    disabled={!shippingSettings.freeShippingEnabled}
+                  />
+                </label>
+                <button type="submit" className="rounded-full bg-primary px-5 py-2.5 text-sm text-primary-foreground transition-opacity hover:opacity-85">
+                  Save shipping settings
+                </button>
+              </form>
             </div>
 
           </section>
