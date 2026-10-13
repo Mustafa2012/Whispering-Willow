@@ -42,8 +42,7 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-white/80">
               <li>Cash on Delivery</li>
               <li>Free shipping over Rs. 5,000</li>
-              <li>Returns within 3 days</li>
-              <li>Exchange &amp; Return Policy</li>
+              <li><a href="/return-policy" className="hover:text-white">Exchange &amp; Return Policy</a></li>
               <li><a href="/faq" className="hover:text-white">FAQs</a></li>
             </ul>
           </div>

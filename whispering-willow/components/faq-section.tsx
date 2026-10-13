@@ -104,6 +104,13 @@ export function FaqSection() {
               Contact us
             </a>
           </div>
+          <p className="mt-8 text-sm text-[#5d6b63]">
+            Need help with an order?{' '}
+            <a href="/return-policy" className="font-medium text-[#2d3933] underline decoration-[#a8b7a1] underline-offset-4 transition-colors hover:text-[#7d8d7d]">
+              Read our exchange &amp; return policy
+            </a>
+            .
+          </p>
         </div>
       </div>
     </section>
