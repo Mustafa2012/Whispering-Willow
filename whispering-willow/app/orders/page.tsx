@@ -133,9 +133,11 @@ export default function OrdersPage() {
     context.textAlign = 'right'
     context.font = '18px Arial, sans-serif'
     context.fillStyle = '#6f665d'
+    const discountAmount = order.discount ?? ORDER_DISCOUNT
+    const deliveryCharge = order.delivery_charge ?? DELIVERY_CHARGE
     context.fillText(`Subtotal: ${formatPrice(order.subtotal ?? Math.max(0, order.total - (order.delivery_charge ?? DELIVERY_CHARGE) + (order.discount ?? ORDER_DISCOUNT)))}`, width - 60, itemY + 35)
-    context.fillText(`Discount: -${formatPrice(order.discount ?? ORDER_DISCOUNT)}`, width - 60, itemY + 68)
-    context.fillText(`Delivery charges: ${formatPrice(order.delivery_charge ?? DELIVERY_CHARGE)}`, width - 60, itemY + 101)
+    context.fillText(`Discount: ${discountAmount === 0 ? formatPrice(0) : `-${formatPrice(discountAmount)}`}`, width - 60, itemY + 68)
+    context.fillText(`Delivery charges: ${deliveryCharge === 0 ? 'Free' : formatPrice(deliveryCharge)}`, width - 60, itemY + 101)
     context.textAlign = 'right'
     context.font = 'bold 24px Arial, sans-serif'
     context.fillStyle = '#332d27'
