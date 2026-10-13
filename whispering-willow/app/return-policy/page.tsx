@@ -64,7 +64,7 @@ export default function ReturnPolicyPage() {
   return (
     <>
       <SiteHeader />
-      <main className="bg-[#f2f0eb] text-[#2d3933]">
+      <main className="bg-secondary/30 text-[#2d3933]">
         <div className="mx-auto max-w-[1000px] px-6 py-16 md:px-8 md:py-24">
           <header className="border-b border-[#c8d1c4] pb-12 text-center md:pb-16">
             <p className="font-sans text-[0.72rem] uppercase tracking-[0.38em] text-[#7d8d7d]">
@@ -124,7 +124,7 @@ export default function ReturnPolicyPage() {
                 href="https://wa.me/923353637626"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 border border-[#a8b7a1] px-5 py-3 text-sm text-[#2d3933] transition-colors hover:bg-[#f2f0eb]"
+                className="inline-flex items-center gap-2 border border-[#a8b7a1] px-5 py-3 text-sm text-[#2d3933] transition-colors hover:bg-secondary/30"
               >
                 <MessageCircle className="h-4 w-4" />
                 WhatsApp
