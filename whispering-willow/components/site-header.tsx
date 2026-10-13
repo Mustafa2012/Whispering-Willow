@@ -48,17 +48,14 @@ export function SiteHeader() {
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
 
-        <a href="/" className="flex items-center gap-2 justify-self-center">
+        <a href="/" className="flex h-[60px] w-[120px] items-center justify-self-center sm:h-[80px] sm:w-[160px]" aria-label="Whispering Willow home">
           <Image
-            src="/whispering-willow-logo.png"
+            src="/whispering-willow-wordmark.png"
             alt="Whispering Willow"
-            width={44}
-            height={44}
-            className="h-11 w-11 rounded-full object-cover"
+            width={160}
+            height={80}
+            className="h-full w-full object-cover mix-blend-multiply"
           />
-          <span className="hidden font-serif text-xl tracking-wide text-foreground sm:inline">
-            Whispering Willow
-          </span>
         </a>
 
         <div className="flex items-center justify-self-end gap-2">
