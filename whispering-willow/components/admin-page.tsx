@@ -56,7 +56,7 @@ export function AdminPage() {
       }
       setPassword(sessionPassword || '')
       setIsAuthorized(true)
-    })
+    }).catch(() => window.location.replace('/'))
   }, [])
 
   useEffect(() => {

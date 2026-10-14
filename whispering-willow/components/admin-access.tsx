@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { customerSupabase } from '@/lib/customer-browser'
-import { adminPasswordSessionKey, adminSessionKey } from '@/lib/admin-browser'
+import { adminPasswordSessionKey, adminSessionKey, hasAdminAccess } from '@/lib/admin-browser'
 
 export function AdminAccess() {
   const [isOpen, setIsOpen] = useState(false)
@@ -10,23 +9,27 @@ export function AdminAccess() {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [isSigningIn, setIsSigningIn] = useState(false)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(false)
 
-  const handleGoogleLogin = async () => {
-    if (!customerSupabase) {
-      setMessage('Google sign-in is not configured.')
+  const handleAdminClick = async () => {
+    if (isOpen) {
+      setIsOpen(false)
       return
     }
 
-    setIsGoogleLoading(true)
+    setIsCheckingSession(true)
     setMessage('')
-    const { error } = await customerSupabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/admin/auth/callback` },
-    })
-    if (error) {
-      setMessage(error.message || 'Unable to continue with Google.')
-      setIsGoogleLoading(false)
+    try {
+      if (await hasAdminAccess()) {
+        window.location.assign('/admin')
+        return
+      }
+      setIsOpen(true)
+    } catch (error) {
+      setIsOpen(true)
+      setMessage(error instanceof Error ? error.message : 'Unable to verify your signed-in account.')
+    } finally {
+      setIsCheckingSession(false)
     }
   }
 
@@ -57,13 +60,11 @@ export function AdminAccess() {
     <div className="relative">
       <button
         type="button"
-        onClick={() => {
-          setMessage('')
-          setIsOpen((current) => !current)
-        }}
+        onClick={() => void handleAdminClick()}
+        disabled={isCheckingSession}
         className="hover:text-foreground"
       >
-        Admin
+        {isCheckingSession ? 'Checking...' : 'Admin'}
       </button>
 
       {isOpen ? (
@@ -78,6 +79,7 @@ export function AdminAccess() {
             </button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-3">
+            <p className="text-xs text-muted-foreground">We’ll check the email on your current sign-in first. Use admin credentials only if needed.</p>
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
@@ -100,10 +102,6 @@ export function AdminAccess() {
               {isSigningIn ? 'Checking...' : 'Continue'}
             </button>
           </form>
-          <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
-          <button type="button" onClick={handleGoogleLogin} disabled={isGoogleLoading || isSigningIn} className="w-full rounded-full border border-border px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-secondary disabled:opacity-60">
-            {isGoogleLoading ? 'Connecting to Google...' : 'Continue with authorized Google email'}
-          </button>
         </div>
       ) : null}
     </div>

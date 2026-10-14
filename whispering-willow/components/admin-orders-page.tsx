@@ -68,7 +68,7 @@ export function AdminOrdersPage() {
       }
       setPassword(sessionPassword || '')
       setIsAuthorized(true)
-    })
+    }).catch(() => window.location.replace('/'))
   }, [])
 
   useEffect(() => {

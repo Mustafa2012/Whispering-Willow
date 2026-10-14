@@ -29,7 +29,7 @@ export function AdminReviewsPage() {
       }
       setPassword(sessionPassword || '')
       setAuthorized(true)
-    })
+    }).catch(() => window.location.replace('/'))
   }, [])
 
   useEffect(() => {
