@@ -17,12 +17,22 @@ export function SiteFooter() {
             <p className="mt-5 max-w-md text-sm leading-relaxed text-white/75">
               Minimal, hypoallergenic, tarnish-resistant jewelry designed to be worn every day.
             </p>
-            <ul className="mt-5 space-y-3 text-sm text-white/80">
-              <li><a href={`tel:${CONTACT_PHONE}`} className="inline-flex items-center gap-3 hover:text-white"><Phone className="h-4 w-4 shrink-0" />{FORMATTED_CONTACT_PHONE}</a></li>
-              <li><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 hover:text-white"><MessageCircle className="h-4 w-4 shrink-0" />WhatsApp</a></li>
-              <li><a href={`mailto:${CONTACT_EMAIL}`} className="inline-flex items-center gap-3 break-all hover:text-white"><Mail className="h-4 w-4 shrink-0" />{CONTACT_EMAIL}</a></li>
-              <li><a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 hover:text-white"><AtSign className="h-4 w-4 shrink-0" />@{INSTAGRAM_HANDLE}</a></li>
-            </ul>
+            <div className="mt-5 flex flex-wrap items-start gap-3 text-white/80">
+              <a href={`tel:${CONTACT_PHONE}`} aria-label={`Call ${FORMATTED_CONTACT_PHONE}`} title={FORMATTED_CONTACT_PHONE} className="inline-flex h-10 w-10 items-center justify-center border border-white/25 transition-colors hover:border-white hover:text-white">
+                <Phone className="h-4 w-4" />
+              </a>
+              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" aria-label="Message us on WhatsApp" title="WhatsApp" className="inline-flex h-10 w-10 items-center justify-center border border-white/25 transition-colors hover:border-white hover:text-white">
+                <MessageCircle className="h-4 w-4" />
+              </a>
+              <a href={`mailto:${CONTACT_EMAIL}`} aria-label={`Email ${CONTACT_EMAIL}`} title={CONTACT_EMAIL} className="inline-flex h-10 w-10 items-center justify-center border border-white/25 transition-colors hover:border-white hover:text-white">
+                <Mail className="h-4 w-4" />
+              </a>
+              <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={`Instagram @${INSTAGRAM_HANDLE}`} title={`@${INSTAGRAM_HANDLE}`} className="inline-flex h-10 w-10 items-center justify-center border border-white/25 transition-colors hover:border-white hover:text-white">
+                <AtSign className="h-4 w-4" />
+              </a>
+            </div>
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-white/80 hover:text-white">@{INSTAGRAM_HANDLE}</a>
+            <p className="mt-2 text-sm text-white/70">{FORMATTED_CONTACT_PHONE}</p>
           </div>
 
           <nav aria-label="Shop links">

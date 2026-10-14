@@ -1,5 +1,5 @@
-import { ChevronDown, MessageCircle } from 'lucide-react'
-import { WHATSAPP_URL } from '@/lib/contact-details'
+import { ChevronDown, Mail, MessageCircle } from 'lucide-react'
+import { CONTACT_EMAIL, WHATSAPP_URL } from '@/lib/contact-details'
 
 const faqs = [
   {
@@ -97,6 +97,13 @@ export function FaqSection() {
             >
               <MessageCircle className="h-4 w-4" />
               WhatsApp
+            </a>
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="inline-flex items-center justify-center gap-2 bg-[#a8b7a1] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.18em] text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
+            >
+              <Mail className="h-4 w-4" />
+              Email us
             </a>
           </div>
           <p className="mt-8 text-sm text-[#5d6b63]">
