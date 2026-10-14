@@ -31,8 +31,6 @@ export function SiteFooter() {
                 <AtSign className="h-4 w-4" />
               </a>
             </div>
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-white/80 hover:text-white">@{INSTAGRAM_HANDLE}</a>
-            <p className="mt-2 text-sm text-white/70">{FORMATTED_CONTACT_PHONE}</p>
           </div>
 
           <nav aria-label="Shop links">
