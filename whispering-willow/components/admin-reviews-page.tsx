@@ -139,6 +139,7 @@ export function AdminReviewsPage() {
             <a href="/admin" className="text-muted-foreground hover:text-foreground">Inventory</a>
             <a href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</a>
             <a href="/admin/reviews" aria-current="page" className="text-foreground">Reviews</a>
+            <a href="/admin/settings" className="text-muted-foreground hover:text-foreground">Settings</a>
           </nav>
         </header>
 

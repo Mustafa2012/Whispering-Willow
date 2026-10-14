@@ -48,6 +48,10 @@ export async function PATCH(request: Request) {
     deliveryCharge?: number
     freeShippingEnabled?: boolean
     freeShippingThreshold?: number
+    bankName?: string
+    bankAccountName?: string
+    bankAccountNumber?: string
+    bankTransferEnabled?: boolean
   }
   try {
     body = await request.json()
@@ -62,10 +66,26 @@ export async function PATCH(request: Request) {
     typeof body.freeShippingEnabled !== 'boolean' ||
     typeof body.freeShippingThreshold !== 'number' ||
     !Number.isFinite(body.freeShippingThreshold) ||
-    body.freeShippingThreshold < 0
+    body.freeShippingThreshold < 0 ||
+    typeof body.bankName !== 'string' ||
+    body.bankName.length > 120 ||
+    typeof body.bankAccountName !== 'string' ||
+    body.bankAccountName.length > 120 ||
+    typeof body.bankAccountNumber !== 'string' ||
+    body.bankAccountNumber.length > 80 ||
+    typeof body.bankTransferEnabled !== 'boolean'
   ) {
     return NextResponse.json(
-      { error: 'Enter valid shipping charges and a free-shipping threshold.' },
+      { error: 'Enter valid bank details, shipping charges, and a free-shipping threshold.' },
+      { status: 400 },
+    )
+  }
+  if (
+    body.bankTransferEnabled &&
+    (!body.bankName.trim() || !body.bankAccountName.trim() || !body.bankAccountNumber.trim())
+  ) {
+    return NextResponse.json(
+      { error: 'Enter the bank name, account holder, and account number before enabling bank transfer.' },
       { status: 400 },
     )
   }
@@ -83,6 +103,10 @@ export async function PATCH(request: Request) {
           delivery_charge: body.deliveryCharge,
           free_shipping_enabled: body.freeShippingEnabled,
           free_shipping_threshold: body.freeShippingThreshold,
+          bank_name: body.bankName.trim(),
+          bank_account_name: body.bankAccountName.trim(),
+          bank_account_number: body.bankAccountNumber.trim(),
+          bank_transfer_enabled: body.bankTransferEnabled,
           updated_at: new Date().toISOString(),
         }),
       },
@@ -107,6 +131,10 @@ export async function PATCH(request: Request) {
       deliveryCharge: body.deliveryCharge,
       freeShippingEnabled: body.freeShippingEnabled,
       freeShippingThreshold: body.freeShippingThreshold,
+      bankName: body.bankName.trim(),
+      bankAccountName: body.bankAccountName.trim(),
+      bankAccountNumber: body.bankAccountNumber.trim(),
+      bankTransferEnabled: body.bankTransferEnabled,
     })
   } catch (error) {
     const message =

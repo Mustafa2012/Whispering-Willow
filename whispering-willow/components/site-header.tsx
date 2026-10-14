@@ -9,6 +9,7 @@ import { customerSupabase, getCustomerAuthHeaders } from '@/lib/customer-browser
 
 const links = [
   { label: 'Shop', href: '/#shop' },
+  { label: 'Contact', href: '/#contact' },
   { label: 'FAQ', href: '/faq' },
   { label: 'Returns & exchanges', href: '/return-policy' },
   { label: 'My orders', href: '/orders' },

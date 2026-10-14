@@ -4,9 +4,11 @@
 
 From `whispering-willow`, install dependencies with `pnpm install` and run the app with `pnpm dev`.
 
-Create a Supabase project, set the values in `.env.local`, and run the SQL files in `whispering-willow/supabase/migrations` in order: `001_store.sql`, `002_order_charges.sql`, `003_store_reviews.sql`, `004_product_sizes.sql`, `005_review_media.sql`, `006_shipping_settings.sql`, and `007_admin_emails.sql`. These migrations set up the catalog, orders, discounts, product size choices, store testimonials, private review-image storage, shipping settings, and authorized admin emails.
+Create a Supabase project, set the values in `.env.local`, and run the SQL files in `whispering-willow/supabase/migrations` in order: `001_store.sql`, `002_order_charges.sql`, `003_store_reviews.sql`, `004_product_sizes.sql`, `005_review_media.sql`, `006_shipping_settings.sql`, `007_admin_emails.sql`, and `008_payment_settings.sql`. These migrations set up the catalog, orders, discounts, product size choices, store testimonials, private review-image storage, shipping and payment settings, and authorized admin emails.
 
 Required environment variables are listed in `whispering-willow/.env.example`. Configure `ADMIN_PANEL_USERNAME` and `ADMIN_PANEL_PASSWORD` for username/password access to `/admin`. The `007_admin_emails.sql` migration initially authorizes `mustafaali192012@gmail.com`; apply it before using email access.
+
+Store settings live at `/admin/settings`, where administrators can update bank details, enable or disable bank transfer at checkout, manage shipping charges, discount codes, authorized admin emails, and the clear-data action.
 
 To enable email-based admin access, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the same project URL and anon key, and configure Google as a Supabase Authentication provider. The admin panel checks the email from the user's existing Supabase sign-in; it does not ask them to sign in again. The verified email must be on the allowlist. `mustafaali192012@gmail.com` is the permanent main admin account: it is not shown in the editable email list and cannot be removed. Additional emails can be added or removed in the **Admin email access** section of `/admin`. Existing username/password access continues to work.
 

@@ -1,4 +1,6 @@
-import { ChevronDown, MessageCircle } from 'lucide-react'
+import { AtSign, ChevronDown, Mail, MessageCircle, Phone } from 'lucide-react'
+import { CONTACT_EMAIL, CONTACT_PHONE, FORMATTED_CONTACT_PHONE, WHATSAPP_URL } from '@/lib/contact-details'
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '@/lib/products'
 
 const faqs = [
   {
@@ -81,21 +83,30 @@ export function FaqSection() {
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <a
-              href="https://www.instagram.com/whisperingwillow.pk/"
+              href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center bg-[#a8b7a1] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.28em] text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
             >
-              Instagram
+              <AtSign className="mr-2 h-4 w-4" />
+              @{INSTAGRAM_HANDLE}
             </a>
             <a
-              href="https://wa.me/923353637626"
+              href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-[#a8b7a1] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.28em] text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
             >
               <MessageCircle className="h-4 w-4" />
               WhatsApp
+            </a>
+            <a href={`tel:${CONTACT_PHONE}`} className="inline-flex items-center justify-center gap-2 bg-[#a8b7a1] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.28em] text-[#1f2a25] transition-colors hover:bg-[#90a18b]">
+              <Phone className="h-4 w-4" />
+              {FORMATTED_CONTACT_PHONE}
+            </a>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="inline-flex items-center justify-center gap-2 bg-[#a8b7a1] px-10 py-4 font-sans text-[0.86rem] uppercase tracking-[0.18em] text-[#1f2a25] transition-colors hover:bg-[#90a18b]">
+              <Mail className="h-4 w-4" />
+              {CONTACT_EMAIL}
             </a>
           </div>
           <p className="mt-8 text-sm text-[#5d6b63]">

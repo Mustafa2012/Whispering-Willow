@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL, CONTACT_PHONE, FORMATTED_CONTACT_PHONE, WHATSAPP_URL } from '@/lib/contact-details'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '@/lib/products'
 
 function InstagramIcon({ className }: { className?: string }) {
@@ -30,11 +31,19 @@ export function Contact() {
           Let&apos;s find the piece that stays with you
         </h2>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-primary-foreground/85 text-pretty">
-          We take orders and answer questions directly on Instagram.
-          Message us — we&apos;d love to help you choose.
+          Contact us by phone, WhatsApp, email, or Instagram — we&apos;d love to help you choose.
         </p>
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+          <a href={`tel:${CONTACT_PHONE}`} className="rounded-full bg-background px-7 py-3.5 text-sm tracking-wide text-foreground transition-opacity hover:opacity-90">
+            Call {FORMATTED_CONTACT_PHONE}
+          </a>
+          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="rounded-full bg-background px-7 py-3.5 text-sm tracking-wide text-foreground transition-opacity hover:opacity-90">
+            WhatsApp {FORMATTED_CONTACT_PHONE}
+          </a>
+          <a href={`mailto:${CONTACT_EMAIL}`} className="rounded-full bg-background px-7 py-3.5 text-sm tracking-wide text-foreground transition-opacity hover:opacity-90">
+            {CONTACT_EMAIL}
+          </a>
           <a
             href={INSTAGRAM_URL}
             target="_blank"

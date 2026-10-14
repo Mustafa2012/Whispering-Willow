@@ -1,11 +1,8 @@
 import Image from 'next/image'
-import { AtSign, MessageCircle, Phone } from 'lucide-react'
+import { AtSign, Mail, MessageCircle, Phone } from 'lucide-react'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '@/lib/products'
 import { AdminAccess } from '@/components/admin-access'
-
-const phoneNumber = '+923353637626'
-const formattedPhone = '+92 335 363 7626'
-const whatsappUrl = 'https://wa.me/923353637626'
+import { CONTACT_EMAIL, CONTACT_PHONE, FORMATTED_CONTACT_PHONE, WHATSAPP_URL } from '@/lib/contact-details'
 
 export function SiteFooter() {
   return (
@@ -49,8 +46,9 @@ export function SiteFooter() {
           <div>
             <h2 className="text-xs uppercase tracking-[0.16em] text-primary">Contact</h2>
             <ul className="mt-4 space-y-4 text-sm text-white/80">
-              <li><a href={`tel:${phoneNumber}`} className="inline-flex items-center gap-3 hover:text-white"><Phone className="h-4 w-4 shrink-0" />{formattedPhone}</a></li>
-              <li><a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 hover:text-white"><MessageCircle className="h-4 w-4 shrink-0" />WhatsApp: {formattedPhone}</a></li>
+              <li><a href={`tel:${CONTACT_PHONE}`} className="inline-flex items-center gap-3 hover:text-white"><Phone className="h-4 w-4 shrink-0" />{FORMATTED_CONTACT_PHONE}</a></li>
+              <li><a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 hover:text-white"><MessageCircle className="h-4 w-4 shrink-0" />WhatsApp: {FORMATTED_CONTACT_PHONE}</a></li>
+              <li><a href={`mailto:${CONTACT_EMAIL}`} className="inline-flex items-center gap-3 break-all hover:text-white"><Mail className="h-4 w-4 shrink-0" />{CONTACT_EMAIL}</a></li>
               <li><a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 hover:text-white"><AtSign className="h-4 w-4 shrink-0" />@{INSTAGRAM_HANDLE}</a></li>
             </ul>
           </div>

@@ -1,8 +1,9 @@
-import { AtSign, MessageCircle } from 'lucide-react'
+import { AtSign, Mail, MessageCircle, Phone } from 'lucide-react'
 import type { Metadata } from 'next'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { INSTAGRAM_URL } from '@/lib/products'
+import { CONTACT_EMAIL, CONTACT_PHONE, FORMATTED_CONTACT_PHONE, WHATSAPP_URL } from '@/lib/contact-details'
 
 export const metadata: Metadata = {
   title: 'Exchange & Return Policy | Whispering Willow',
@@ -108,7 +109,7 @@ export default function ReturnPolicyPage() {
             </p>
             <p className="mt-6 text-sm leading-relaxed text-[#425047] md:text-base">
               For any questions or exchange requests, contact us through our
-              official Instagram page or WhatsApp.
+              Instagram, WhatsApp, phone, or email.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <a
@@ -121,13 +122,27 @@ export default function ReturnPolicyPage() {
                 Instagram
               </a>
               <a
-                href="https://wa.me/923353637626"
+                href={WHATSAPP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-[#a8b7a1] px-5 py-3 text-sm text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
               >
                 <MessageCircle className="h-4 w-4" />
                 WhatsApp
+              </a>
+              <a
+                href={`tel:${CONTACT_PHONE}`}
+                className="inline-flex items-center gap-2 bg-[#a8b7a1] px-5 py-3 text-sm text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
+              >
+                <Phone className="h-4 w-4" />
+                {FORMATTED_CONTACT_PHONE}
+              </a>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="inline-flex items-center gap-2 bg-[#a8b7a1] px-5 py-3 text-sm text-[#1f2a25] transition-colors hover:bg-[#90a18b]"
+              >
+                <Mail className="h-4 w-4" />
+                {CONTACT_EMAIL}
               </a>
             </div>
           </aside>

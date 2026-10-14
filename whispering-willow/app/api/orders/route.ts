@@ -63,9 +63,16 @@ export async function POST(request: Request) {
     const paymentMethod = body.paymentMethod
     const discountCode = body.discountCode?.trim().toUpperCase()
     const items = body.items || []
+    const shippingSettings = await getShippingSettings()
 
     if (!customerName || !email || !phone || !address || !paymentMethod || items.length === 0) {
       return NextResponse.json({ error: 'Customer, delivery, payment, and cart details are required.' }, { status: 400 })
+    }
+    if (paymentMethod !== 'cod' && paymentMethod !== 'bank_transfer') {
+      return NextResponse.json({ error: 'Choose a valid payment method.' }, { status: 400 })
+    }
+    if (paymentMethod === 'bank_transfer' && !shippingSettings.bankTransferEnabled) {
+      return NextResponse.json({ error: 'Bank transfer is currently unavailable.' }, { status: 400 })
     }
     if (paymentMethod === 'bank_transfer' && (!body.transactionReference?.trim() || !body.proofUrl?.trim())) {
       return NextResponse.json({ error: 'Bank transfer reference and proof are required.' }, { status: 400 })
@@ -83,7 +90,6 @@ export async function POST(request: Request) {
       return { product_id: product.id, name: product.name, price: product.price, quantity, selected_size: item.selectedSize || null, total: product.price * quantity }
     })
     const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0)
-    const shippingSettings = await getShippingSettings()
     const deliveryCharge = calculateShippingCharge(subtotal, shippingSettings)
     let discount = ORDER_DISCOUNT
     let discountUsageCount = 0

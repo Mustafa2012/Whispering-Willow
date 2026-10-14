@@ -18,7 +18,7 @@ export async function getShippingSettings(): Promise<ShippingSettings> {
   }
 
   const response = await fetch(
-    `${supabaseUrl}/rest/v1/store_settings?select=delivery_charge,free_shipping_enabled,free_shipping_threshold&id=eq.true&limit=1`,
+    `${supabaseUrl}/rest/v1/store_settings?select=delivery_charge,free_shipping_enabled,free_shipping_threshold,bank_name,bank_account_name,bank_account_number,bank_transfer_enabled&id=eq.true&limit=1`,
     {
       headers: {
         apikey: serviceRoleKey!,
@@ -38,6 +38,10 @@ export async function getShippingSettings(): Promise<ShippingSettings> {
     delivery_charge: number | string
     free_shipping_enabled: boolean
     free_shipping_threshold: number | string
+    bank_name: string
+    bank_account_name: string
+    bank_account_number: string
+    bank_transfer_enabled: boolean
   }>
 
   if (!row) {
@@ -60,6 +64,10 @@ export async function getShippingSettings(): Promise<ShippingSettings> {
     deliveryCharge,
     freeShippingEnabled: row.free_shipping_enabled,
     freeShippingThreshold,
+    bankName: row.bank_name,
+    bankAccountName: row.bank_account_name,
+    bankAccountNumber: row.bank_account_number,
+    bankTransferEnabled: row.bank_transfer_enabled,
   }
 }
 
