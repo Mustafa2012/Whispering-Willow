@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { PRODUCT_CATEGORIES, type Product } from '@/lib/products'
 import { DEFAULT_SHIPPING_SETTINGS, type ShippingSettings } from '@/lib/shipping-settings'
+import { adminPasswordSessionKey, hasAdminAccess } from '@/lib/admin-browser'
 
 const emptyForm = {
   name: '',
@@ -20,9 +21,6 @@ type ShippingSettingsForm = {
   freeShippingEnabled: boolean
   freeShippingThreshold: string
 }
-const adminSessionKey = 'whispering-willow-admin-authenticated'
-const adminPasswordSessionKey = 'whispering-willow-admin-password'
-
 export function AdminPage() {
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
@@ -34,6 +32,9 @@ export function AdminPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([])
+  const [adminEmails, setAdminEmails] = useState<string[]>([])
+  const [newAdminEmail, setNewAdminEmail] = useState('')
+  const [isSavingAdminEmail, setIsSavingAdminEmail] = useState(false)
   const [discountForm, setDiscountForm] = useState({ code: '', discountType: 'percentage', value: '', expiresAt: '', usageLimit: '' })
   const [shippingSettings, setShippingSettings] = useState<ShippingSettingsForm>({
     deliveryCharge: String(DEFAULT_SHIPPING_SETTINGS.deliveryCharge),
@@ -48,13 +49,14 @@ export function AdminPage() {
   useEffect(() => {
     const sessionPassword = sessionStorage.getItem(adminPasswordSessionKey)
 
-    if (sessionStorage.getItem(adminSessionKey) !== 'true' || !sessionPassword) {
-      window.location.replace('/')
-      return
-    }
-
-    setPassword(sessionPassword)
-    setIsAuthorized(true)
+    void hasAdminAccess().then((authorized) => {
+      if (!authorized) {
+        window.location.replace('/')
+        return
+      }
+      setPassword(sessionPassword || '')
+      setIsAuthorized(true)
+    })
   }, [])
 
   useEffect(() => {
@@ -66,8 +68,9 @@ export function AdminPage() {
       fetch('/api/products'),
       fetch('/api/admin/discounts', { headers: { 'x-admin-password': password } }),
       fetch('/api/admin/shipping-settings', { headers: { 'x-admin-password': password } }),
+      fetch('/api/admin/emails', { headers: { 'x-admin-password': password } }),
     ])
-      .then(async ([productResponse, discountResponse, shippingResponse]) => {
+      .then(async ([productResponse, discountResponse, shippingResponse, emailResponse]) => {
         if (!productResponse.ok) throw new Error('Unable to load products.')
         if (discountResponse.ok) setDiscountCodes(await discountResponse.json() as DiscountCode[])
         if (!shippingResponse.ok) {
@@ -75,6 +78,11 @@ export function AdminPage() {
           throw new Error(result.error || 'Unable to load shipping settings.')
         }
         const settings = await shippingResponse.json() as ShippingSettings
+        if (!emailResponse.ok) {
+          const result = await emailResponse.json() as { error?: string }
+          throw new Error(result.error || 'Unable to load authorized admin emails.')
+        }
+        setAdminEmails(await emailResponse.json() as string[])
         setShippingSettings({
           deliveryCharge: String(settings.deliveryCharge),
           freeShippingEnabled: settings.freeShippingEnabled,
@@ -96,11 +104,6 @@ export function AdminPage() {
 
   const handleImageUpload = async (file?: File) => {
     if (!file) {
-      return
-    }
-
-    if (!password) {
-      setMessage('Enter the admin password before uploading an image.')
       return
     }
 
@@ -277,6 +280,44 @@ export function AdminPage() {
     setMessage('Shipping settings saved.')
   }
 
+  const addAdminEmail = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsSavingAdminEmail(true)
+    setMessage('')
+    try {
+      const response = await fetch('/api/admin/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ email: newAdminEmail }),
+      })
+      const result = await response.json() as { email?: string; error?: string }
+      if (!response.ok || !result.email) throw new Error(result.error || 'Unable to add the admin email.')
+      const addedEmail = result.email
+      setAdminEmails((current) => [...current, addedEmail].sort())
+      setNewAdminEmail('')
+      setMessage('Admin email added.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to add the admin email.')
+    } finally {
+      setIsSavingAdminEmail(false)
+    }
+  }
+
+  const removeAdminEmail = async (email: string) => {
+    if (!window.confirm(`Remove admin access for ${email}?`)) return
+    const response = await fetch(`/api/admin/emails?email=${encodeURIComponent(email)}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-password': password },
+    })
+    const result = await response.json() as { error?: string }
+    if (!response.ok) {
+      setMessage(result.error || 'Unable to remove the admin email.')
+      return
+    }
+    setAdminEmails((current) => current.filter((item) => item !== email))
+    setMessage('Admin email removed.')
+  }
+
   if (!isAuthorized) {
     return null
   }
@@ -349,6 +390,35 @@ export function AdminPage() {
                   </div>
                 </article>
               ))}
+            </div>
+
+            <div className="mt-12 border-t border-border/70 pt-8">
+              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="font-serif text-3xl text-foreground">Admin email access</h2>
+                <span className="text-sm text-muted-foreground">{adminEmails.length} emails</span>
+              </div>
+              <p className="mb-4 text-sm text-muted-foreground">These Google accounts can sign in to the admin panel. Each person must verify their email with Google.</p>
+              <form onSubmit={addAdminEmail} className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  required
+                  type="email"
+                  value={newAdminEmail}
+                  onChange={(event) => setNewAdminEmail(event.target.value)}
+                  placeholder="name@example.com"
+                  className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none"
+                />
+                <button type="submit" disabled={isSavingAdminEmail} className="rounded-xl bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60">
+                  {isSavingAdminEmail ? 'Adding...' : 'Add email'}
+                </button>
+              </form>
+              <div className="mt-4 space-y-2">
+                {adminEmails.map((email) => (
+                  <div key={email} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-background px-4 py-3">
+                    <span className="text-sm text-foreground">{email}</span>
+                    <button type="button" onClick={() => void removeAdminEmail(email)} className="rounded-full border border-destructive/50 px-3 py-1 text-xs text-destructive">Remove</button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-12 border-t border-border/70 pt-8">

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { isAdminRequest } from '@/lib/admin-auth'
 import {
   createProduct,
   deleteProduct,
@@ -30,11 +31,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!isProductDatabaseConfigured() || !process.env.ADMIN_PANEL_PASSWORD) {
+  if (!isProductDatabaseConfigured()) {
     return NextResponse.json({ error: 'Product administration is not configured.' }, { status: 503 })
   }
 
-  if (request.headers.get('x-admin-password') !== process.env.ADMIN_PANEL_PASSWORD) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: 'Invalid admin password.' }, { status: 401 })
   }
 
@@ -69,11 +70,11 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!isProductDatabaseConfigured() || !process.env.ADMIN_PANEL_PASSWORD) {
+  if (!isProductDatabaseConfigured()) {
     return NextResponse.json({ error: 'Product administration is not configured.' }, { status: 503 })
   }
 
-  if (request.headers.get('x-admin-password') !== process.env.ADMIN_PANEL_PASSWORD) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: 'Invalid admin password.' }, { status: 401 })
   }
 
@@ -92,11 +93,11 @@ export async function DELETE(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  if (!isProductDatabaseConfigured() || !process.env.ADMIN_PANEL_PASSWORD) {
+  if (!isProductDatabaseConfigured()) {
     return NextResponse.json({ error: 'Product administration is not configured.' }, { status: 503 })
   }
 
-  if (request.headers.get('x-admin-password') !== process.env.ADMIN_PANEL_PASSWORD) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: 'Invalid admin password.' }, { status: 401 })
   }
 

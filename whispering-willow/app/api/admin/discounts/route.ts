@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
+import { isAdminRequest } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, '').replace(/\/rest\/v1$/, '')
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-function unauthorized(request: Request) {
-  return !process.env.ADMIN_PANEL_PASSWORD || request.headers.get('x-admin-password') !== process.env.ADMIN_PANEL_PASSWORD
+async function unauthorized(request: Request) {
+  return !(await isAdminRequest(request))
 }
 
 function adminHeaders() {
@@ -12,14 +13,14 @@ function adminHeaders() {
 }
 
 export async function GET(request: Request) {
-  if (unauthorized(request) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  if ((await unauthorized(request)) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   const response = await fetch(`${supabaseUrl}/rest/v1/discount_codes?select=*&order=created_at.desc`, { headers: adminHeaders(), cache: 'no-store' })
   if (!response.ok) return NextResponse.json({ error: 'Unable to load discount codes.' }, { status: 500 })
   return NextResponse.json(await response.json())
 }
 
 export async function POST(request: Request) {
-  if (unauthorized(request) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  if ((await unauthorized(request)) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   const body = await request.json() as { code?: string; discountType?: string; value?: number; expiresAt?: string; usageLimit?: number | null }
   const code = body.code?.trim().toUpperCase()
   const value = Number(body.value)
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (unauthorized(request) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  if ((await unauthorized(request)) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   const body = await request.json() as { id?: number; isActive?: boolean }
   if (!Number.isInteger(body.id) || typeof body.isActive !== 'boolean') return NextResponse.json({ error: 'Invalid discount code update.' }, { status: 400 })
   const response = await fetch(`${supabaseUrl}/rest/v1/discount_codes?id=eq.${body.id}`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ is_active: body.isActive }) })
@@ -41,7 +42,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (unauthorized(request) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  if ((await unauthorized(request)) || !supabaseUrl || !serviceRoleKey) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   const id = Number(new URL(request.url).searchParams.get('id'))
   if (!Number.isInteger(id)) return NextResponse.json({ error: 'Invalid discount code.' }, { status: 400 })
   const response = await fetch(`${supabaseUrl}/rest/v1/discount_codes?id=eq.${id}`, { method: 'DELETE', headers: adminHeaders() })

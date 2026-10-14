@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { isAdminRequest } from '@/lib/admin-auth'
 import {
   createStoreReview,
   deleteStoreReview,
@@ -7,13 +8,12 @@ import {
   setStoreReviewPublished,
 } from '@/lib/reviews-server'
 
-function authorized(request: Request) {
-  return Boolean(process.env.ADMIN_PANEL_PASSWORD)
-    && request.headers.get('x-admin-password') === process.env.ADMIN_PANEL_PASSWORD
+async function authorized(request: Request) {
+  return isAdminRequest(request)
 }
 
 export async function GET(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  if (!(await authorized(request))) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   if (!isReviewDatabaseConfigured()) return NextResponse.json({ error: 'Review database is not configured.' }, { status: 503 })
 
   try {
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  if (!(await authorized(request))) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   if (!isReviewDatabaseConfigured()) return NextResponse.json({ error: 'Review database is not configured.' }, { status: 503 })
 
   try {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  if (!(await authorized(request))) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   if (!isReviewDatabaseConfigured()) return NextResponse.json({ error: 'Review database is not configured.' }, { status: 503 })
 
   try {
@@ -63,7 +63,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  if (!(await authorized(request))) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   if (!isReviewDatabaseConfigured()) return NextResponse.json({ error: 'Review database is not configured.' }, { status: 503 })
 
   const id = Number(new URL(request.url).searchParams.get('id'))

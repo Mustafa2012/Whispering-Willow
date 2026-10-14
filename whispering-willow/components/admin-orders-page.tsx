@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { downloadOrderReceipt } from '@/lib/order-receipt'
+import { adminPasswordSessionKey, hasAdminAccess } from '@/lib/admin-browser'
 
 type AdminOrder = {
   id: number
@@ -25,8 +26,6 @@ type AdminOrder = {
   created_at: string
 }
 
-const adminSessionKey = 'whispering-willow-admin-authenticated'
-const adminPasswordSessionKey = 'whispering-willow-admin-password'
 const statuses = ['pending', 'confirmed', 'processing', 'shipped', 'completed', 'cancelled'] as const
 type Filter = 'all' | typeof statuses[number] | 'approved' | 'declined'
 
@@ -62,12 +61,14 @@ export function AdminOrdersPage() {
 
   useEffect(() => {
     const sessionPassword = sessionStorage.getItem(adminPasswordSessionKey)
-    if (sessionStorage.getItem(adminSessionKey) !== 'true' || !sessionPassword) {
-      window.location.replace('/')
-      return
-    }
-    setPassword(sessionPassword)
-    setIsAuthorized(true)
+    void hasAdminAccess().then((authorized) => {
+      if (!authorized) {
+        window.location.replace('/')
+        return
+      }
+      setPassword(sessionPassword || '')
+      setIsAuthorized(true)
+    })
   }, [])
 
   useEffect(() => {

@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
+import { isAdminRequest } from '@/lib/admin-auth'
 
 export async function POST(request: Request) {
   const supabaseUrl = process.env.SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const adminPassword = process.env.ADMIN_PANEL_PASSWORD
 
-  if (!supabaseUrl || !serviceRoleKey || !adminPassword) {
+  if (!supabaseUrl || !serviceRoleKey) {
     return NextResponse.json({ error: 'Image storage is not configured.' }, { status: 503 })
   }
 
-  if (request.headers.get('x-admin-password') !== adminPassword) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: 'Invalid admin password.' }, { status: 401 })
   }
 

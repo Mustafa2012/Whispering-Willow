@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { isAdminRequest } from '@/lib/admin-auth'
 import {
   getShippingSettings,
   isShippingSettingsDatabaseConfigured,
@@ -6,15 +7,12 @@ import {
   shippingSettingsTableUrl,
 } from '@/lib/shipping-settings-server'
 
-function unauthorized(request: Request) {
-  return (
-    !process.env.ADMIN_PANEL_PASSWORD ||
-    request.headers.get('x-admin-password') !== process.env.ADMIN_PANEL_PASSWORD
-  )
+async function unauthorized(request: Request) {
+  return !(await isAdminRequest(request))
 }
 
 export async function GET(request: Request) {
-  if (unauthorized(request)) {
+  if (await unauthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   }
   if (!isShippingSettingsDatabaseConfigured()) {
@@ -36,7 +34,7 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (unauthorized(request)) {
+  if (await unauthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   }
   if (!isShippingSettingsDatabaseConfigured()) {

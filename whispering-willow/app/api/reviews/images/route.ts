@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
+import { isAdminRequest } from '@/lib/admin-auth'
 import { getCustomerSession } from '@/lib/customer-auth'
 import { hasCustomerPlacedOrder } from '@/lib/customer-orders'
 
@@ -12,8 +13,7 @@ const allowedTypes: Record<string, string> = {
 const maxFileSize = 5 * 1024 * 1024
 
 export async function POST(request: Request) {
-  const adminPassword = process.env.ADMIN_PANEL_PASSWORD
-  const isAdmin = Boolean(adminPassword) && request.headers.get('x-admin-password') === adminPassword
+  const isAdmin = await isAdminRequest(request)
   const customer = isAdmin ? null : await getCustomerSession(request)
   if (!isAdmin && !customer) return NextResponse.json({ error: 'Sign in to upload review images.' }, { status: 401 })
   if (!isAdmin) {

@@ -3,9 +3,8 @@
 import { ImagePlus, Star, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { StoreReview } from '@/lib/reviews'
+import { adminPasswordSessionKey, hasAdminAccess } from '@/lib/admin-browser'
 
-const adminSessionKey = 'whispering-willow-admin-authenticated'
-const adminPasswordSessionKey = 'whispering-willow-admin-password'
 const maxReviewImages = 3
 const maxImageBytes = 5 * 1024 * 1024
 
@@ -23,12 +22,14 @@ export function AdminReviewsPage() {
 
   useEffect(() => {
     const sessionPassword = sessionStorage.getItem(adminPasswordSessionKey)
-    if (sessionStorage.getItem(adminSessionKey) !== 'true' || !sessionPassword) {
-      window.location.replace('/')
-      return
-    }
-    setPassword(sessionPassword)
-    setAuthorized(true)
+    void hasAdminAccess().then((authorized) => {
+      if (!authorized) {
+        window.location.replace('/')
+        return
+      }
+      setPassword(sessionPassword || '')
+      setAuthorized(true)
+    })
   }, [])
 
   useEffect(() => {

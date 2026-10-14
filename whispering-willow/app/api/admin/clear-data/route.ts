@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { isAdminRequest } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, '').replace(/\/rest\/v1$/, '')
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -40,7 +41,7 @@ async function removeStorageObjects(bucket: string, paths: string[]) {
 }
 
 export async function POST(request: Request) {
-  if (!process.env.ADMIN_PANEL_PASSWORD || request.headers.get('x-admin-password') !== process.env.ADMIN_PANEL_PASSWORD) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   }
   if (!clearPassword) {
