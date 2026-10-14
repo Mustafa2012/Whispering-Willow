@@ -2,7 +2,6 @@ import { SiteHeader } from '@/components/site-header'
 import { ProductGrid } from '@/components/product-grid'
 import { SiteFooter } from '@/components/site-footer'
 import { StoreReviews } from '@/components/store-reviews'
-import { Contact } from '@/components/contact'
 import { getProducts } from '@/lib/products-server'
 import { getPublishedReviews } from '@/lib/reviews-server'
 
@@ -15,7 +14,6 @@ export default async function Page() {
       <main>
         <ProductGrid products={products} />
         <StoreReviews reviews={reviews} />
-        <Contact />
       </main>
       <SiteFooter />
     </>
