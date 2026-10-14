@@ -10,6 +10,8 @@ export type Product = {
   isActive?: boolean
 }
 
+export const PRODUCT_CATEGORIES = ['Bangles', 'Bracelets', 'Earrings', 'Necklaces', 'Rings'] as const
+
 export const products: Product[] = [
   {
     name: 'Gem Bracelet',

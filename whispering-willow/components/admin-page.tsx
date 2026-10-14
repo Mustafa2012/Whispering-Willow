@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { Product } from '@/lib/products'
+import { PRODUCT_CATEGORIES, type Product } from '@/lib/products'
 import { DEFAULT_SHIPPING_SETTINGS, type ShippingSettings } from '@/lib/shipping-settings'
 
 const emptyForm = {
@@ -40,6 +40,10 @@ export function AdminPage() {
     freeShippingEnabled: DEFAULT_SHIPPING_SETTINGS.freeShippingEnabled,
     freeShippingThreshold: String(DEFAULT_SHIPPING_SETTINGS.freeShippingThreshold),
   })
+  const categoryOptions = Array.from(new Set([
+    ...PRODUCT_CATEGORIES,
+    ...(selectedProduct ? [selectedProduct.category] : []),
+  ]))
 
   useEffect(() => {
     const sessionPassword = sessionStorage.getItem(adminPasswordSessionKey)
@@ -84,7 +88,7 @@ export function AdminPage() {
   }, [isAuthorized])
 
   const handleFormChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
@@ -419,7 +423,13 @@ export function AdminPage() {
             </div>
             <form onSubmit={handleSave} className="space-y-3">
               <input name="name" value={form.name} onChange={handleFormChange} placeholder="Product name" required className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
-              <input name="category" value={form.category} onChange={handleFormChange} placeholder="Category" required className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
+              <label>
+                <span className="sr-only">Category</span>
+                <select name="category" value={form.category} onChange={handleFormChange} required className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none">
+                  <option value="" disabled>Select category</option>
+                  {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
+                </select>
+              </label>
               <input name="price" value={form.price} onChange={handleFormChange} placeholder="Price" className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
               <input name="sizes" value={form.sizes} onChange={handleFormChange} placeholder="Sizes (comma-separated, optional)" className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
               <textarea name="description" value={form.description} onChange={handleFormChange} placeholder="Short description" rows={5} required className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" />
