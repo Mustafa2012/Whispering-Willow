@@ -17,7 +17,12 @@ export function ProductGrid({ products }: ProductGridProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [addedProductName, setAddedProductName] = useState<string | null>(null)
   const addedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const categories = PRODUCT_CATEGORIES.filter((item) => products.some((product) => product.category === item))
+  const categories = [
+    ...PRODUCT_CATEGORIES.filter((item) => products.some((product) => product.category === item)),
+    ...Array.from(new Set(products.map((product) => product.category)))
+      .filter((item) => !PRODUCT_CATEGORIES.some((category) => category === item))
+      .sort((left, right) => left.localeCompare(right)),
+  ]
 
   useEffect(() => {
     const requestedCategory = new URLSearchParams(window.location.search).get('category')
@@ -104,51 +109,68 @@ export function ProductGrid({ products }: ProductGridProps) {
 
           <div className="min-w-0">
             {filteredProducts.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-background px-6 py-16 text-center">
-            <ShoppingBag className="mx-auto h-8 w-8 text-primary" />
-            <h3 className="mt-4 font-serif text-2xl text-foreground">No pieces found</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Try a different search or clear your filters.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 justify-items-center gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
-            {filteredProducts.map((p) => (
-                    <article
-                      key={p.id ?? p.name}
-                      className="group flex w-full min-w-0 flex-col overflow-hidden rounded-xl border border-border/70 bg-card text-left shadow-sm"
-                    >
-                      <Link href={`/products/${slugifyProductName(p.name)}`} aria-label={`View ${p.name}`} className="relative aspect-[4/3] w-full overflow-hidden">
-                        <img
-                          src={p.image || '/placeholder.svg'}
-                          alt={p.name}
-                          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                        />
-                      </Link>
-                      <div className="flex flex-1 flex-col p-3 sm:p-4">
-                        <span className="truncate text-[10px] uppercase tracking-[0.16em] text-primary sm:text-xs">
-                          {p.category}
-                        </span>
-                        <h3 className="mt-1.5 line-clamp-2 font-serif text-base leading-tight text-foreground sm:text-lg">
-                          <Link href={`/products/${slugifyProductName(p.name)}`} className="hover:text-primary">{p.name}</Link>
+              <div className="rounded-2xl border border-dashed border-border bg-background px-6 py-16 text-center">
+                <ShoppingBag className="mx-auto h-8 w-8 text-primary" />
+                <h3 className="mt-4 font-serif text-2xl text-foreground">No pieces found</h3>
+                <p className="mt-2 text-sm text-muted-foreground">Try a different search or clear your filters.</p>
+              </div>
+            ) : (
+              <div className="space-y-12">
+                {categories.map((item) => {
+                  const categoryProducts = filteredProducts.filter((product) => product.category === item)
+                  if (categoryProducts.length === 0) return null
+
+                  return (
+                    <section key={item} aria-labelledby={`shop-category-${slugifyProductName(item)}`}>
+                      <div className="mb-5 flex items-baseline justify-between border-b border-border/70 pb-3">
+                        <h3 id={`shop-category-${slugifyProductName(item)}`} className="font-serif text-3xl text-foreground">
+                          {item}
                         </h3>
-                        <p className="mt-1.5 line-clamp-2 flex-1 text-[11px] leading-snug text-muted-foreground sm:text-xs">
-                          {p.description}
-                        </p>
-                        <div className="mt-3 flex flex-col items-start justify-between gap-1.5 sm:flex-row sm:items-center sm:gap-2">
-                          <span className="font-serif text-sm text-foreground sm:text-base">{formatPrice(p.price)}</span>
-                          {p.sizes?.length ? (
-                            <Link href={`/products/${slugifyProductName(p.name)}`} className="w-full rounded-full bg-primary px-2 py-1.5 text-center text-[10px] tracking-wide text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto sm:px-3 sm:text-xs">Choose size</Link>
-                          ) : (
-                            <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-1.5 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
-                              <span className={addedProductName === p.name ? 'opacity-0' : 'opacity-100'}>Add to cart</span>
-                              {addedProductName === p.name ? <span className="absolute inset-0 flex items-center justify-center bg-white text-foreground">Added</span> : null}
-                            </button>
-                          )}
-                        </div>
+                        <span className="text-sm text-muted-foreground">{categoryProducts.length} pieces</span>
                       </div>
-                    </article>
-            ))}
-          </div>
-        )}
+                      <div className="grid grid-cols-2 justify-items-center gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
+                        {categoryProducts.map((p) => (
+                          <article
+                            key={p.id ?? p.name}
+                            className="group flex w-full min-w-0 flex-col overflow-hidden rounded-xl border border-border/70 bg-card text-left shadow-sm"
+                          >
+                            <Link href={`/products/${slugifyProductName(p.name)}`} aria-label={`View ${p.name}`} className="relative aspect-[4/3] w-full overflow-hidden">
+                              <img
+                                src={p.image || '/placeholder.svg'}
+                                alt={p.name}
+                                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                              />
+                            </Link>
+                            <div className="flex flex-1 flex-col p-3 sm:p-4">
+                              <span className="truncate text-[10px] uppercase tracking-[0.16em] text-primary sm:text-xs">
+                                {p.category}
+                              </span>
+                              <h4 className="mt-1.5 line-clamp-2 font-serif text-base leading-tight text-foreground sm:text-lg">
+                                <Link href={`/products/${slugifyProductName(p.name)}`} className="hover:text-primary">{p.name}</Link>
+                              </h4>
+                              <p className="mt-1.5 line-clamp-2 flex-1 text-[11px] leading-snug text-muted-foreground sm:text-xs">
+                                {p.description}
+                              </p>
+                              <div className="mt-3 flex flex-col items-start justify-between gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                                <span className="font-serif text-sm text-foreground sm:text-base">{formatPrice(p.price)}</span>
+                                {p.sizes?.length ? (
+                                  <Link href={`/products/${slugifyProductName(p.name)}`} className="w-full rounded-full bg-primary px-2 py-1.5 text-center text-[10px] tracking-wide text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto sm:px-3 sm:text-xs">Choose size</Link>
+                                ) : (
+                                  <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-1.5 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
+                                    <span className={addedProductName === p.name ? 'opacity-0' : 'opacity-100'}>Add to cart</span>
+                                    {addedProductName === p.name ? <span className="absolute inset-0 flex items-center justify-center bg-white text-foreground">Added</span> : null}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
