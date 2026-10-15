@@ -59,7 +59,20 @@ export async function POST(request: Request) {
     if (!response.ok) {
       return NextResponse.json({ error: 'Unable to add the admin email.' }, { status: 500 })
     }
-    return NextResponse.json({ email: normalizedEmail }, { status: 201 })
+    const savedRows: unknown = await response.json()
+    const savedEmail = Array.isArray(savedRows)
+      ? savedRows.find((row: unknown): row is { email: string } =>
+        typeof row === 'object' &&
+        row !== null &&
+        'email' in row &&
+        typeof row.email === 'string' &&
+        normalizeAdminEmail(row.email) === normalizedEmail,
+      )?.email
+      : undefined
+    if (typeof savedEmail !== 'string') {
+      return NextResponse.json({ error: 'The admin email was not confirmed as saved.' }, { status: 500 })
+    }
+    return NextResponse.json({ email: savedEmail }, { status: 201 })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to add the admin email.'
     return NextResponse.json({ error: message }, { status: 503 })
