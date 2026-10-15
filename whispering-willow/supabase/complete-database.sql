@@ -134,3 +134,10 @@ on conflict (id) do update
 set public = false,
     file_size_limit = excluded.file_size_limit,
     allowed_mime_types = excluded.allowed_mime_types;
+
+create table if not exists newsletter_subscribers (
+  email text primary key check (email = lower(trim(email))),
+  created_at timestamptz not null default now()
+);
+
+alter table newsletter_subscribers enable row level security;

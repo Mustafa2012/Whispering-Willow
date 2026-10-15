@@ -229,7 +229,7 @@ export function AdminSettingsPage() {
     setMessage('Admin email removed.')
   }
 
-  const clearReviewsAndOrders = async (event: React.FormEvent<HTMLFormElement>) => {
+  const clearStoreData = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsClearing(true)
     setClearMessage('')
@@ -240,12 +240,12 @@ export function AdminSettingsPage() {
         body: JSON.stringify({ confirmationPassword: clearPassword }),
       })
       const result = await response.json() as { error?: string; warning?: string }
-      if (!response.ok) throw new Error(result.error || 'Unable to clear reviews and orders.')
-      setClearMessage(result.warning || 'All reviews and orders have been cleared.')
+      if (!response.ok) throw new Error(result.error || 'Unable to clear store data.')
+      setClearMessage(result.warning || 'Reviews, orders, and newsletter subscribers have been cleared.')
       setClearPassword('')
       setIsClearFormOpen(false)
     } catch (error) {
-      setClearMessage(error instanceof Error ? error.message : 'Unable to clear reviews and orders.')
+      setClearMessage(error instanceof Error ? error.message : 'Unable to clear store data.')
     } finally {
       setIsClearing(false)
     }
@@ -266,6 +266,7 @@ export function AdminSettingsPage() {
           <nav className="flex flex-wrap gap-3">
             <a href="/admin/orders" className="rounded-full border border-border bg-background px-4 py-2.5 text-sm">Orders</a>
             <a href="/admin/reviews" className="rounded-full border border-border bg-background px-4 py-2.5 text-sm">Reviews</a>
+            <a href="/admin/contacts" className="rounded-full border border-border bg-background px-4 py-2.5 text-sm">Contacts</a>
           </nav>
         </header>
 
@@ -363,13 +364,13 @@ export function AdminSettingsPage() {
           <section className="rounded-2xl border border-destructive/40 bg-background p-5 md:p-7" aria-labelledby="clear-data-heading">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 id="clear-data-heading" className="font-serif text-2xl text-foreground">Clear reviews and orders</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Permanently deletes all reviews, orders, order items, and attached files.</p>
+                <h2 id="clear-data-heading" className="font-serif text-2xl text-foreground">Clear reviews, orders, and contacts</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Permanently deletes all reviews, orders, order items, newsletter subscribers, and attached files.</p>
               </div>
               {!isClearFormOpen ? <button type="button" onClick={() => { setClearMessage(''); setIsClearFormOpen(true) }} className="border border-destructive px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10">Clear all data</button> : null}
             </div>
             {isClearFormOpen ? (
-              <form onSubmit={clearReviewsAndOrders} className="mt-5 grid gap-3 border-t border-border/70 pt-5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end">
+              <form onSubmit={clearStoreData} className="mt-5 grid gap-3 border-t border-border/70 pt-5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end">
                 <label className="grid gap-2 text-sm text-foreground">Enter the clear-all password
                   <input required type="password" autoComplete="off" value={clearPassword} onChange={(event) => setClearPassword(event.target.value)} className="w-full border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-destructive" />
                 </label>

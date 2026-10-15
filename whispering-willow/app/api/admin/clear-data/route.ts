@@ -72,7 +72,6 @@ export async function POST(request: Request) {
     if (!reviewsResponse.ok && reviewsResponse.status !== 404) {
       return NextResponse.json({ error: 'Unable to read reviews; nothing was cleared.' }, { status: 500 })
     }
-
     const reviews = reviewsResponse.ok ? await reviewsResponse.json() as ReviewRow[] : []
     const orders = await ordersResponse.json() as OrderRow[]
 
@@ -96,6 +95,14 @@ export async function POST(request: Request) {
       }
     }
 
+    const deleteSubscribersResponse = await fetch(`${supabaseUrl}/rest/v1/newsletter_subscribers?email=not.is.null`, {
+      method: 'DELETE',
+      headers: { ...headers(), Prefer: 'return=minimal' },
+    })
+    if (!deleteSubscribersResponse.ok && deleteSubscribersResponse.status !== 404) {
+      return NextResponse.json({ error: 'Reviews and orders were cleared, but newsletter subscribers could not be cleared.' }, { status: 500 })
+    }
+
     const reviewImagePaths = reviews.flatMap((review) => review.image_paths || [])
     const orderProofPaths = orders.map((order) => orderProofPath(order.proof_url)).filter((path): path is string => Boolean(path))
     const [reviewImagesRemoved, orderProofsRemoved] = await Promise.all([
@@ -105,9 +112,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      warning: reviewImagesRemoved && orderProofsRemoved ? undefined : 'Records were cleared, but some attached files could not be removed.',
+      warning: reviewImagesRemoved && orderProofsRemoved ? undefined : 'Database records were cleared, but some attached files could not be removed.',
     })
   } catch {
-    return NextResponse.json({ error: 'Unable to clear reviews and orders.' }, { status: 500 })
+    return NextResponse.json({ error: 'Unable to clear reviews, orders, and newsletter subscribers.' }, { status: 500 })
   }
 }

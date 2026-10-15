@@ -218,6 +218,7 @@ export function AdminPage() {
             <a href="/admin/orders" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Orders dashboard</a>
             <a href="/admin/reviews" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Store reviews</a>
             <a href="/admin/settings" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Store settings</a>
+            <a href="/admin/contacts" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Contacts</a>
             <button type="button" onClick={startNewProduct} className="rounded-full bg-foreground px-5 py-3 text-sm text-background transition-opacity hover:opacity-85">Add new product</button>
           </div>
         </div>

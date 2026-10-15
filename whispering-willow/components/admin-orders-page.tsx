@@ -118,6 +118,7 @@ export function AdminOrdersPage() {
             <a href="/admin" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Inventory</a>
             <a href="/admin/reviews" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Store reviews</a>
             <a href="/admin/settings" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Store settings</a>
+            <a href="/admin/contacts" className="rounded-full border border-border bg-background px-5 py-3 text-sm text-foreground transition-colors hover:border-primary">Contacts</a>
           </div>
         </div>
 
