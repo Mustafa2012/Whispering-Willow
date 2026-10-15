@@ -72,38 +72,41 @@ export function AdminSettingsPage() {
   useEffect(() => {
     if (!authorized) return
     const headers = { 'x-admin-password': password }
+    const errors: string[] = []
+    const loadResource = async <T,>(
+      url: string,
+      fallback: string,
+      onSuccess: (result: T) => void,
+    ) => {
+      try {
+        const response = await fetch(url, { headers, cache: 'no-store' })
+        const result = await response.json() as T | { error?: string }
+        if (!response.ok) {
+          throw new Error((result as { error?: string }).error || fallback)
+        }
+        onSuccess(result as T)
+      } catch (error) {
+        errors.push(error instanceof Error ? error.message : fallback)
+      }
+    }
+
     Promise.all([
-      fetch('/api/admin/shipping-settings', { headers }),
-      fetch('/api/admin/discounts', { headers }),
-      fetch('/api/admin/emails', { headers }),
-    ])
-      .then(async ([settingsResponse, discountResponse, emailResponse]) => {
-        const settingsResult = await settingsResponse.json() as ShippingSettings | { error?: string }
-        if (!settingsResponse.ok) {
-          throw new Error((settingsResult as { error?: string }).error || 'Unable to load store settings.')
-        }
+      loadResource<ShippingSettings>('/api/admin/shipping-settings', 'Unable to load store settings.', (result) => {
         setSettings({
-          deliveryCharge: String((settingsResult as ShippingSettings).deliveryCharge),
-          freeShippingEnabled: (settingsResult as ShippingSettings).freeShippingEnabled,
-          freeShippingThreshold: String((settingsResult as ShippingSettings).freeShippingThreshold),
-          bankName: (settingsResult as ShippingSettings).bankName,
-          bankAccountName: (settingsResult as ShippingSettings).bankAccountName,
-          bankAccountNumber: (settingsResult as ShippingSettings).bankAccountNumber,
-          bankTransferEnabled: (settingsResult as ShippingSettings).bankTransferEnabled,
+          deliveryCharge: String(result.deliveryCharge),
+          freeShippingEnabled: result.freeShippingEnabled,
+          freeShippingThreshold: String(result.freeShippingThreshold),
+          bankName: result.bankName,
+          bankAccountName: result.bankAccountName,
+          bankAccountNumber: result.bankAccountNumber,
+          bankTransferEnabled: result.bankTransferEnabled,
         })
-        const discountResult = await discountResponse.json() as DiscountCode[] | { error?: string }
-        if (!discountResponse.ok) {
-          throw new Error((discountResult as { error?: string }).error || 'Unable to load discount codes.')
-        }
-        setDiscountCodes(discountResult as DiscountCode[])
-        const emailResult = await emailResponse.json() as string[] | { error?: string }
-        if (!emailResponse.ok) {
-          throw new Error((emailResult as { error?: string }).error || 'Unable to load admin emails.')
-        }
-        setAdminEmails(emailResult as string[])
-      })
-      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Unable to load settings.'))
-      .finally(() => setIsLoading(false))
+      }),
+      loadResource<DiscountCode[]>('/api/admin/discounts', 'Unable to load discount codes.', setDiscountCodes),
+      loadResource<string[]>('/api/admin/emails', 'Unable to load admin emails.', setAdminEmails),
+    ]).then(() => {
+      if (errors.length) setMessage(errors.join(' '))
+    }).finally(() => setIsLoading(false))
   }, [authorized, password])
 
   const saveSettings = async (event: React.FormEvent<HTMLFormElement>) => {
