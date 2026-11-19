@@ -64,7 +64,7 @@ export function ProductGrid({ products }: ProductGridProps) {
             Choose quality, not clutter
           </span>
           <h2 className="mt-3 font-serif text-4xl tracking-tight text-foreground md:text-5xl">
-            Our Jewelry
+            Jewelry that whispers stories
           </h2>
         </div>
 
