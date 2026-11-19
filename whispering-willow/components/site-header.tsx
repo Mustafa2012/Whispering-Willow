@@ -30,6 +30,7 @@ export function SiteHeader() {
     const nextDarkMode = !document.documentElement.classList.contains('dark')
     document.documentElement.classList.toggle('dark', nextDarkMode)
     localStorage.setItem('theme', nextDarkMode ? 'dark' : 'light')
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', nextDarkMode ? '#252b27' : '#f4f1ea')
     setDarkMode(nextDarkMode)
   }
 

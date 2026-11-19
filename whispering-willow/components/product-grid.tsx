@@ -152,9 +152,9 @@ export function ProductGrid({ products }: ProductGridProps) {
                                 {p.sizes?.length ? (
                                   <Link href={`/products/${slugifyProductName(p.name)}`} className="w-full rounded-full bg-primary px-2 py-1.5 text-center text-[10px] tracking-wide text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto sm:px-3 sm:text-xs">Choose size</Link>
                                 ) : (
-                                  <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-1.5 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs ${addedProductName === p.name ? 'bg-white text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
+                                  <button type="button" onClick={() => handleAddToCart(p)} className={`relative w-full overflow-hidden rounded-full px-2 py-1.5 text-[10px] tracking-wide transition-colors sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs ${addedProductName === p.name ? 'bg-card text-card-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}>
                                     <span className={addedProductName === p.name ? 'opacity-0' : 'opacity-100'}>Add to cart</span>
-                                    {addedProductName === p.name ? <span className="absolute inset-0 flex items-center justify-center bg-white text-foreground">Added</span> : null}
+                                    {addedProductName === p.name ? <span className="absolute inset-0 flex items-center justify-center bg-card text-card-foreground">Added</span> : null}
                                   </button>
                                 )}
                               </div>
