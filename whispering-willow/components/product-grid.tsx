@@ -66,10 +66,6 @@ export function ProductGrid({ products }: ProductGridProps) {
           <h2 className="mt-3 font-serif text-4xl tracking-tight text-foreground md:text-5xl">
             Our Jewelry
           </h2>
-          <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
-            Buy once, wear it always. Each piece is chosen to remain beautiful
-            for years to come.
-          </p>
         </div>
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-y border-border/70 py-3">

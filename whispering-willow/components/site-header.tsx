@@ -54,7 +54,7 @@ export function SiteHeader() {
             alt="Whispering Willow"
             width={160}
             height={80}
-            className="h-full w-full object-cover mix-blend-multiply"
+            className="h-full w-full object-cover"
           />
         </a>
 
