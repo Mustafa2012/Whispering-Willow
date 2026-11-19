@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { LogOut, Menu, ShoppingBag, UserRound, X } from 'lucide-react'
+import { LogOut, Menu, Moon, ShoppingBag, Sun, UserRound, X } from 'lucide-react'
 import { useCart } from '@/components/cart-provider'
 import { CartDrawer } from '@/components/cart-drawer'
 import { customerSupabase, getCustomerAuthHeaders } from '@/lib/customer-browser'
@@ -20,6 +20,18 @@ export function SiteHeader() {
   const { itemCount } = useCart()
   const [customerEmail, setCustomerEmail] = useState<string | null>(null)
   const [customerAvatar, setCustomerAvatar] = useState<string | null>(null)
+  const [darkMode, setDarkMode] = useState(false)
+
+  useEffect(() => {
+    setDarkMode(document.documentElement.classList.contains('dark'))
+  }, [])
+
+  const toggleDarkMode = () => {
+    const nextDarkMode = !document.documentElement.classList.contains('dark')
+    document.documentElement.classList.toggle('dark', nextDarkMode)
+    localStorage.setItem('theme', nextDarkMode ? 'dark' : 'light')
+    setDarkMode(nextDarkMode)
+  }
 
   useEffect(() => {
     getCustomerAuthHeaders().then((headers) => fetch('/api/auth/me', { headers })).then((response) => response.json()).then((result: { authenticated: boolean; email?: string; avatarUrl?: string }) => {
@@ -59,6 +71,15 @@ export function SiteHeader() {
         </a>
 
         <div className="flex items-center justify-self-end gap-2">
+          <button
+            type="button"
+            onClick={toggleDarkMode}
+            className="p-2 text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
           <button
             type="button"
             onClick={() => setCartOpen(true)}

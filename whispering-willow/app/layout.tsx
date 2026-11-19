@@ -27,8 +27,11 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#f4f1ea',
-  colorScheme: 'light',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f4f1ea' },
+    { media: '(prefers-color-scheme: dark)', color: '#24211e' },
+  ],
+  colorScheme: 'light dark',
 }
 
 export default function RootLayout({
@@ -37,7 +40,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${jost.variable} bg-background`}>
+    <html lang="en" suppressHydrationWarning className={`${cormorant.variable} ${jost.variable} bg-background`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var theme=localStorage.getItem('theme');var dark=theme==='dark'||(theme===null&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',dark);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="font-sans antialiased">
         <CartProvider>
           <CustomerSessionSync />
