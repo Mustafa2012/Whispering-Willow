@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Jost } from 'next/font/google'
 import { CartProvider } from '@/components/cart-provider'
 import { CustomerSessionSync } from '@/components/customer-session-sync'
+import { NewsletterSignup } from '@/components/newsletter-signup'
 import './globals.css'
 
 const cormorant = Cormorant_Garamond({
@@ -52,6 +53,7 @@ export default function RootLayout({
         <CartProvider>
           <CustomerSessionSync />
           {children}
+          <NewsletterSignup />
         </CartProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

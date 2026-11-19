@@ -58,7 +58,7 @@ export function SiteFooter() {
 
         <div className="flex flex-col justify-between gap-4 pt-5 text-xs text-primary-foreground/60 sm:flex-row sm:items-center">
           <p>© {new Date().getFullYear()} Whispering Willow. All rights reserved.</p>
-          <div className="flex items-center gap-4"><span>Crafted with care in Pakistan</span><AdminAccess /></div>
+          <AdminAccess />
         </div>
       </div>
     </footer>

@@ -76,35 +76,33 @@
 .dark {
   color-scheme: dark;
 
-  /* calming midnight forest */
-  --background: oklch(0.19 0.018 155);
-  --foreground: oklch(0.94 0.018 88);
+  --background: oklch(0.23 0.018 55);
+  --foreground: oklch(0.94 0.012 78);
 
-  --card: oklch(0.245 0.018 155);
-  --card-foreground: oklch(0.94 0.018 88);
+  --card: oklch(0.28 0.021 55);
+  --card-foreground: oklch(0.94 0.012 78);
 
-  --popover: oklch(0.245 0.018 155);
-  --popover-foreground: oklch(0.94 0.018 88);
+  --popover: oklch(0.28 0.021 55);
+  --popover-foreground: oklch(0.94 0.012 78);
 
-  /* pale sage with a deep text color */
-  --primary: oklch(0.72 0.052 155);
-  --primary-foreground: oklch(0.18 0.022 155);
+  --primary: oklch(0.48 0.038 55);
+  --primary-foreground: oklch(0.94 0.012 78);
 
-  --secondary: oklch(0.31 0.035 78);
-  --secondary-foreground: oklch(0.94 0.018 88);
+  --secondary: oklch(0.34 0.025 55);
+  --secondary-foreground: oklch(0.94 0.012 78);
 
-  --muted: oklch(0.27 0.016 155);
-  --muted-foreground: oklch(0.76 0.026 88);
+  --muted: oklch(0.31 0.021 55);
+  --muted-foreground: oklch(0.76 0.018 78);
 
-  --accent: oklch(0.67 0.075 27);
-  --accent-foreground: oklch(0.16 0.018 155);
+  --accent: oklch(0.46 0.055 38);
+  --accent-foreground: oklch(0.94 0.012 78);
 
-  --gold: oklch(0.78 0.072 76);
+  --gold: oklch(0.68 0.072 76);
 
   --destructive: oklch(0.66 0.19 27);
-  --border: oklch(0.39 0.022 155);
-  --input: oklch(0.39 0.022 155);
-  --ring: oklch(0.78 0.072 76);
+  --border: oklch(0.40 0.025 55);
+  --input: oklch(0.40 0.025 55);
+  --ring: oklch(0.68 0.072 76);
 }
 
 @layer base {
