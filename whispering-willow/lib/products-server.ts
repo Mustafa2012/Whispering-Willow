@@ -51,18 +51,29 @@ export async function getProducts(): Promise<Product[]> {
     throw new Error(`Supabase products request failed with status ${response.status}.`)
   }
 
-  const storedRows = await response.json() as Array<Product & { is_active?: boolean }>
-  const storedProducts = storedRows.map(({ is_active, ...product }) => ({
-    ...product,
-    sizes: hasSizesColumn && product.sizes?.length ? product.sizes : product.category === 'Rings' ? ['6', '7', '8'] : [],
-    isActive: is_active ?? true,
-  }))
-  const storedNames = new Set(storedProducts.map((product) => product.name))
-  const missingProducts = defaultProducts.filter((product) => !storedNames.has(product.name))
+  const normalizeRows = (rows: Array<Product & { is_active?: boolean }>): Product[] =>
+    rows.map(({ is_active, ...product }) => ({
+      ...product,
+      sizes: hasSizesColumn && product.sizes?.length ? product.sizes : product.category === 'Rings' ? ['6', '7', '8'] : [],
+      isActive: is_active ?? true,
+    }))
 
-  if (missingProducts.length === 0) {
+  const storedProducts = normalizeRows(await response.json() as Array<Product & { is_active?: boolean }>)
+
+  // Only seed a brand-new, empty catalog. Re-seeding any "missing" default on
+  // every request would bring back products that were deleted or renamed on purpose.
+  if (storedProducts.length > 0) {
     return storedProducts
   }
+
+  const seedRows = defaultProducts.map(({ name, category, price, description, image, sizes }) => ({
+    name,
+    category,
+    price,
+    description,
+    image,
+    ...(hasSizesColumn ? { sizes: sizes ?? [] } : {}),
+  }))
 
   const seedResponse = await fetch(`${supabaseUrl}/rest/v1/products`, {
     method: 'POST',
@@ -71,15 +82,15 @@ export async function getProducts(): Promise<Product[]> {
       'Content-Type': 'application/json',
       Prefer: 'return=representation',
     },
-    body: JSON.stringify(missingProducts),
+    body: JSON.stringify(seedRows),
   })
 
   if (!seedResponse.ok) {
-    throw new Error('Unable to seed the existing product catalog.')
+    const detail = await seedResponse.text().catch(() => '')
+    throw new Error(`Unable to seed the existing product catalog (status ${seedResponse.status}): ${detail}`)
   }
 
-  const seededProducts = (await seedResponse.json()) as Product[]
-  return [...storedProducts, ...seededProducts]
+  return normalizeRows(await seedResponse.json() as Array<Product & { is_active?: boolean }>)
 }
 
 export async function createProduct(product: Product) {
